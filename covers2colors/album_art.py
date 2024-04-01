@@ -1,17 +1,20 @@
-import pylast, requests, json
+import pylast, requests, json, os
 import numpy as np
 import musicbrainzngs, discogs_client
 import time
 from fuzzywuzzy import fuzz
 
-with open('keys.json', 'r') as f:
-    config = json.load(f)
+api_key = None
+discogs_token = None
+if os.path.exists('keys.json'):
+    with open('keys.json', 'r') as f:
+        config = json.load(f)
+        api_key = config['lastfm']['api_key']
+        discogs_token = config['discogs']['token']
 
-d = discogs_client.Client("MusicLibrary/0.1", user_token=config['discogs']['token'])
-api_key = config['lastfm']['api_key']
-USER_AGENT = "album cover color"
+USER_AGENT = "covers2colors"
 USER_AGENT_VERSION = "0.1"
-USER_AGENT_URL = "http://someapplication.com"
+USER_AGENT_URL = "http://idonthaveawebsite.com"
 COVER_ART_URL_TEMPLATE = "https://coverartarchive.org/release/{}/front-500"
 
 def get_lastfm_cover_art_url(api_key, artist_name, album_name, max_retries=3):
@@ -73,7 +76,7 @@ def get_mb_cover_art_url(artist_name, album_name):
         release_id = release['id']
         cover_art_url = COVER_ART_URL_TEMPLATE.format(release_id)
 
-        #Check if the cover art exists
+        #Check if cover art exists
         with requests.get(cover_art_url, stream=True) as response:
             if response.status_code != 200:
                 print(f"Cover art not found for {name}")
@@ -88,8 +91,9 @@ def get_mb_cover_art_url(artist_name, album_name):
 
     return None
 
-def get_discogs_cover_art_url(artist_name, album_name):
+def get_discogs_cover_art_url(artist_name, album_name, user_token):
     """ Fetches the album cover art URL from the Discogs API for a given artist and album."""
+    d = discogs_client.Client("covers2colors/0.1", user_token=user_token)
     try:
         discogs_search = d.search(artist=artist_name, release_title=album_name, type="release")
         results = discogs_search.page(1)
@@ -110,7 +114,7 @@ def get_discogs_cover_art_url(artist_name, album_name):
 
     return None
 
-def get_best_cover_art_url(artist_name, album_name, api_key = None):
+def get_best_cover_art_url(artist_name, album_name, api_key = None, user_token = None):
     """ Fetches the album cover art URL using the best available method. """
     cover_art_url = None
 
@@ -124,9 +128,9 @@ def get_best_cover_art_url(artist_name, album_name, api_key = None):
         print("Attempting to get cover art from MusicBrainz")
         cover_art_url = get_mb_cover_art_url(artist_name, album_name)
 
-    if not cover_art_url:
-        # Try Discogs if no cover art was found from the above methods
+    if not cover_art_url and user_token != None:
+        # Try Discogs if no cover art was found in previous methods if discog token is provided
         print("Attempting to get cover art from Discogs")
-        cover_art_url = get_discogs_cover_art_url(artist_name, album_name)
+        cover_art_url = get_discogs_cover_art_url(artist_name, album_name, user_token)
 
     return cover_art_url

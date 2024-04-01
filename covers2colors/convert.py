@@ -4,8 +4,8 @@ from urllib.error import HTTPError
 from urllib.error import URLError
 from urllib.request import urlopen
 import matplotlib.pyplot as plt
-from mpl_toolkits.axes_grid1 import make_axes_locatable
 import matplotlib as mpl
+from mpl_toolkits.axes_grid1 import make_axes_locatable
 import numpy as np
 from kneed import KneeLocator
 from PIL import Image

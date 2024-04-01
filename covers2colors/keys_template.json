@@ -4,6 +4,6 @@
   "lastfm": {
     "api_key": "[lastfm api key]",
     "secret": "[lastfm api secret]",
-    "user": "[your lastfm username (not really necessary)"
+    "user": "[your lastfm username (not really necessary)]"
   }
 }
