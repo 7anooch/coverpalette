@@ -73,8 +73,6 @@ docs/_build
 # Mypy Cache
 .mypy_cache/
 
-src/keys.json
-src/*.ipynb
 AUTHORS.rst
 README.rst
 covers2colors/keys.json
