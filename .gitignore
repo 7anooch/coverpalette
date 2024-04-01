@@ -72,3 +72,8 @@ docs/_build
 
 # Mypy Cache
 .mypy_cache/
+
+src/keys.json
+src/*.ipynb
+AUTHORS.rst
+README.rst
