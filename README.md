@@ -5,7 +5,7 @@
 Clone the repo, navigate inside it and run ``pip install .``
 
 ### API access to album covers
-Before you install anything, consider setting up some API keys if you so wish.
+Before installation, consider setting up some API keys if you so wish.
 
 To get album covers I try 3 different APIs (Last.fm, MusicBrains, and Discogs), two of which require API keys (Last.fm and discogs). To set up your API keys, you will want to rename `covers2colors/keys_template.json` to `covers2colors/keys.json` and add in your API keys in there. Once the file is renamed the package will assume it contains valid api keys and will attempt to use them.
 
@@ -21,7 +21,7 @@ Then, ``generate_cmap`` creates a matplotlib [ListedColormap](https://matplotlib
 
     from covers2colors import CoverColors
 
-    covercolors = CoverColors('closure in moscow', "pink lemonade")
+    covercolors = CoverColors('iron maiden', "powerslave")
     cmap = covercolors.generate_cmap(n_colors=5, random_state=42)
 
 Now, use the colormap in your plots!
@@ -39,6 +39,8 @@ Plot the image and a colorbar side by side with the following method:
 
     covercolors.display_with_colorbar(cmap)
 
+![generate_cmap_img](./images/generate_cmap.png)
+
 ## Other colormap methods
 
 ### generate_optimal_cmap
@@ -53,6 +55,7 @@ and it's cluster center.
 
     best_cmap = cmaps[best_n_colors]
 
+![generate_optimal_cmap_img](./images/generate_optimal_cmap.png)
 
 ### get_distinct_colors
 
@@ -70,13 +73,14 @@ Another method you can use to get a color map. This method employs the generate_
     distinct_colors, distinct_cmap = covercolors.generate_distinct_optimal_cmap(n_distinct_colors=6)
 
 
+![generate_distinct_optimal_cmap_img](./images/generate_distinct_optimal_cmap.png)
+
 The different methods of obtaining a palette will often return different palettes for the name number of colors, ``generate_distinct_optimal_cmap``appears to be the one that performs the best imo, but results vary (which is why there are options!).
 
 ### Hexcodes
 
 When running the ``generate_cmap`` or the ``generate_optimal_cmap`` methods the CoverColors object will automatically
 capture the resulting hexcodes from the colormap and store them as an attribute.
-
 
 
     from cover2colors import CoverColors
