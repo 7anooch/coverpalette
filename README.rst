@@ -1,22 +1,22 @@
 ========
-img2cmap
+covers2colors
 ========
 
 Usage
 =====
 
-**Create colormaps from images in three lines of code!**
-
-| First, ``ImageConverter`` class converts images to arrays of RGB values.
+**Create colormaps from your favorite album covers in three lines of code!**
+| First, calls are made to various APIs to get the album art
+| Next, ``CoverColors`` class converts the image to arrays of RGB values.
 | Then, ``generate_cmap`` creates a matplotlib `ListedColormap <https://matplotlib.org/stable/api/_as_gen/matplotlib.colors.ListedColormap.html#matplotlib-colors-listedcolormap>`_.
 
 .. code-block:: python3
 
-    from img2cmap import ImageConverter
+    from covers2colors import CoverColors
 
     # Can be a local file or URL
-    converter = ImageConverter("tests/images/south_beach_sunset.jpg")
-    cmap = converter.generate_cmap(n_colors=5, palette_name="south_beach_sunset", random_state=42)
+    covercolors = CoverColors('closure in moscow', "pink lemonade")
+    cmap = covercolors.generate_cmap(n_colors=3, random_state=42)
 
 Now, use the colormap in your plots!
 
@@ -38,20 +38,7 @@ Plot the image and a colorbar side by side.
 
 .. code-block:: python3
 
-    import matplotlib.pyplot as plt
-    from mpl_toolkits.axes_grid1 import make_axes_locatable
-
-    fig, ax = plt.subplots(figsize=(7, 5))
-
-    ax.axis("off")
-    img = plt.imread("tests/images/south_beach_sunset.jpg")
-    im = ax.imshow(img, cmap=cmap)
-
-    divider = make_axes_locatable(ax)
-    cax = divider.append_axes("right", size="10%", pad=0.05)
-
-    cb = fig.colorbar(im, cax=cax, orientation="vertical", label=cmap.name)
-    cb.set_ticks([])
+    covercolors.display_with_colorbar(cmap)
 
 .. image:: images/colorbar.png
     :align: center
