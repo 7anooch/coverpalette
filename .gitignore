@@ -77,3 +77,4 @@ src/keys.json
 src/*.ipynb
 AUTHORS.rst
 README.rst
+covers2colors/keys.json

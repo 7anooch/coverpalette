@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
 
 setup(
-    name="Covers to Colors",
+    name="covers2colors",
     version="0.1",
     packages=find_packages(),
     # author="Your Name",
@@ -17,13 +17,11 @@ setup(
     ],
     python_requires='>=3.6',
     install_requires=[
-        "urllib",
         "matplotlib",
-        "mpl_toolkits",
         "numpy",
         "kneed",
-        "PIL",
-        "sklearn",
+        "pillow",
+        "scikit-learn",
         "scipy",
         "fuzzywuzzy",
         "discogs_client",
