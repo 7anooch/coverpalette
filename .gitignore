@@ -49,14 +49,6 @@ htmlcov
 .vscode
 *.iml
 *.komodoproject
-
-# Complexity
-output/*.html
-output/*/index.html
-
-# Sphinx
-docs/_build
-
 .DS_Store
 *~
 .*.sw[po]
@@ -72,7 +64,5 @@ docs/_build
 
 # Mypy Cache
 .mypy_cache/
-
-AUTHORS.rst
-README.rst
+keys.json
 covers2colors/keys.json

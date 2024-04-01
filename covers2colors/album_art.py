@@ -1,4 +1,4 @@
-import pylast, requests, json, os
+import pylast, requests, json, os, pkg_resources
 import numpy as np
 import musicbrainzngs, discogs_client
 import time
@@ -6,11 +6,11 @@ from fuzzywuzzy import fuzz
 
 api_key = None
 discogs_token = None
-if os.path.exists('keys.json'):
-    with open('keys.json', 'r') as f:
-        config = json.load(f)
-        api_key = config['lastfm']['api_key']
-        discogs_token = config['discogs']['token']
+keys_path = pkg_resources.resource_filename('covers2colors', 'keys.json')
+with open(keys_path, 'r') as f:
+    config = json.load(f)
+    api_key = config['lastfm']['api_key']
+    discogs_token = config['discogs']['token']
 
 USER_AGENT = "covers2colors"
 USER_AGENT_VERSION = "0.1"

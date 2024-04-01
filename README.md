@@ -7,9 +7,11 @@ Clone the repo, navigate inside it and use ``pip install .``
 ### API access to album covers
 Before installation, consider setting up some API keys if you so wish.
 
-To get album covers I try 3 different APIs (Last.fm, MusicBrains, and Discogs), two of which require API keys (Last.fm and discogs). To set up your API keys, you will want to rename `covers2colors/keys_template.json` to `covers2colors/keys.json` and add in your API keys in there. Once the file is renamed the package will assume it contains valid api keys and will attempt to use them.
+To get album covers I try 3 different APIs (Last.fm, MusicBrains, and Discogs), two of which require API keys (Last.fm and discogs). Last.fm is the preferred API. 
 
-If you would rather not bother getting any API keys, things should still work fine and artwork will attempt to be fetched from MusicBrainz only.
+To set up your API keys, you will want to rename `covers2colors/keys_template.json` to `covers2colors/keys.json` and add in your API keys in there. Once the file is renamed the package will assume it contains valid api keys and will attempt to use them.
+
+If you would rather not bother getting any API keys, artwork will attempt to be fetched from MusicBrainz only. things should still work fine, although the MusicBrains API can be slow. I've also noticed that the color on some album covers appear muted on Discogs and MusicBrains.
 
 ## Basic Usage
 
