@@ -4,12 +4,19 @@
 
 Clone the repo, navigate inside it and run ``pip install .``
 
+### API access to album covers
+Before you install anything, consider setting up some API keys if you so wish.
+
+To get album covers I try 3 different APIs (Last.fm, MusicBrains, and Discogs), two of which require API keys (Last.fm and discogs). To set up your API keys, you will want to rename `covers2colors/keys_template.json` to `covers2colors/keys.json` and add in your API keys in there. Once the file is renamed the package will assume it contains valid api keys and will attempt to use them.
+
+If you would rather not bother getting any API keys, things should still work fine and artwork will attempt to be fetched from MusicBrainz only.
+
 ## Basic Usage
 
 **Create colormaps from album covers in three lines of code!**
 
 First, the ``CoverColors`` class makes calls to various APIs in order to fetch album artwork, and converts the image to arrays of RGB values.
-Then, ``generate_cmap`` creates a matplotlib `ListedColormap <https://matplotlib.org/stable/api/_as_gen/matplotlib.colors.ListedColormap.html#matplotlib-colors-listedcolormap>`_.
+Then, ``generate_cmap`` creates a matplotlib [ListedColormap](https://matplotlib.org/stable/api/_as_gen/matplotlib.colors.ListedColormap.html#matplotlib-colors-listedcolormap).
 
 
     from covers2colors import CoverColors
@@ -32,13 +39,12 @@ Plot the image and a colorbar side by side with the following method:
 
     covercolors.display_with_colorbar(cmap)
 
-
 ## Other colormap methods
 
 ### generate_optimal_cmap
 
 You can extract the optimal number of colors from the image using the ``generate_optimal_cmap`` method.
-Under the hood this performs the `elbow method <https://en.wikipedia.org/wiki/Elbow_method_(clustering)>`
+Under the hood this performs the [elbow method](https://en.wikipedia.org/wiki/Elbow_method_(clustering))
 to determine the optimal number of clusters based on the sum of the squared distances between each pixel
 and it's cluster center.
 
