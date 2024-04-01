@@ -11,7 +11,7 @@ Clone the repo, navigate inside it and run ``pip install .``
 First, the ``CoverColors`` class makes calls to various APIs in order to fetch album artwork, and converts the image to arrays of RGB values.
 Then, ``generate_cmap`` creates a matplotlib `ListedColormap <https://matplotlib.org/stable/api/_as_gen/matplotlib.colors.ListedColormap.html#matplotlib-colors-listedcolormap>`_.
 
-::
+
     from covers2colors import CoverColors
 
     covercolors = CoverColors('closure in moscow', "pink lemonade")
@@ -41,7 +41,7 @@ You can extract the optimal number of colors from the image using the ``generate
 Under the hood this performs the `elbow method <https://en.wikipedia.org/wiki/Elbow_method_(clustering)>`
 to determine the optimal number of clusters based on the sum of the squared distances between each pixel
 and it's cluster center.
-::
+
 
     cmaps, best_n_colors, ssd = covercolors.generate_optimal_cmap(max_colors=10, random_state=42)
 
@@ -52,7 +52,7 @@ and it's cluster center.
 
 Suppose you have a collection of colors in your color palette, but you only want to select a subset from them. This method will select the most distinct colors out of the palette for your new, smaller color palette.
 
-::
+
     cmap = cmaps[10]
     distinct_colors, distinct_cmap = covercolors.get_distinct_colors(cmap, 5)
 
@@ -60,7 +60,7 @@ Suppose you have a collection of colors in your color palette, but you only want
 
 Another method you can use to get a color map. This method employs the generate_optimal_cmap and then finds the most distinct set of ``n_distinct_colors`` colors.
 
-::
+
     distinct_colors, distinct_cmap = covercolors.generate_distinct_optimal_cmap(n_distinct_colors=6)
 
 
@@ -71,7 +71,8 @@ The different methods of obtaining a palette will often return different palette
 When running the ``generate_cmap`` or the ``generate_optimal_cmap`` methods the CoverColors object will automatically
 capture the resulting hexcodes from the colormap and store them as an attribute.
 
-::
+
+
     from cover2colors import CoverColors
 
     covercolors = CoverColors('Nirvana', Nevermind)
@@ -79,6 +80,6 @@ capture the resulting hexcodes from the colormap and store them as an attribute.
     print(covercolors.hexcodes)
 
 Output:
-::
+
 
     ['#0ea1c1', '#456a78', '#0269ae', '#091a2d']
