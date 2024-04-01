@@ -91,7 +91,7 @@ capture the resulting hexcodes from the colormap and store them as an attribute.
 
     from cover2colors import CoverColors
 
-    covercolors = CoverColors('Nirvana', Nevermind)
+    covercolors = CoverColors('Nirvana', 'Nevermind')
     covercolors.generate_cmap(n_colors=4, random_state=42)
     print(covercolors.hexcodes)
 
