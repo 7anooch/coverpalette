@@ -158,6 +158,7 @@ class CoverColors:
 
         # Get the most distinct colors
         distinct_colors = kmeans.cluster_centers_
+        distinct_colors = np.array(distinct_colors)
 
         # Create a colormap from the distinct colors
         distinct_cmap = ListedColormap(distinct_colors)
@@ -198,6 +199,8 @@ class CoverColors:
                 max_distinctness = distinctness
                 best_distinct_colors = distinct_colors
                 best_distinct_cmap = distinct_cmap
+        
+        best_distinct_colors = np.array(best_distinct_colors)
 
         return best_distinct_colors, best_distinct_cmap
 
