@@ -1,8 +1,10 @@
+from typing import Optional
+
 from .convert import CoverPalette
 from .album_art import get_best_cover_art_url
 
 
-def get_cmap(artist: str, album: str, n_colors: int = 4, random_state: int | None = None):
+def get_cmap(artist: str, album: str, n_colors: int = 4, random_state: Optional[int] = None):
     """Return a colormap for ``artist`` and ``album`` in a single call."""
 
     palette = CoverPalette(artist, album)

@@ -4,6 +4,7 @@ from urllib.error import URLError
 from urllib.request import urlopen
 import json
 from pathlib import Path
+from typing import Optional, Union
 import matplotlib.pyplot as plt
 import matplotlib as mpl
 from mpl_toolkits.axes_grid1 import make_axes_locatable
@@ -290,7 +291,7 @@ class CoverPalette:
         except Exception as e:
             print(f"Error displaying preview: {e}")
 
-    def save_palette(self, path: str | None = None, name: str | None = None):
+    def save_palette(self, path: Optional[str] = None, name: Optional[str] = None):
         """Save the current hexcodes to ``path`` or to the default palette
         directory.
 
@@ -356,11 +357,11 @@ class CoverPalette:
         with INDEX_FILE.open("w") as f:
             json.dump(data, f, indent=2)
 
-    def load_palette(self, path: str | Path):
+    def load_palette(self, path: Union[str, Path]):
         """Load hexcodes from ``path`` and set ``self.hexcodes``.
 
         Parameters:
-            path (str | Path): Path to a palette saved via :meth:`save_palette`.
+            path (str or Path): Path to a palette saved via :meth:`save_palette`.
 
         Raises:
             FileNotFoundError: If the palette file does not exist.
