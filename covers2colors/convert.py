@@ -24,7 +24,7 @@ def _ensure_palette_dir() -> None:
     """Create the palette directory if it does not exist."""
     PALETTE_DIR.mkdir(parents=True, exist_ok=True)
 
-class CoverColors:
+class CoverPalette:
     """
     A class to convert album artwork to a numpy array of RGB values.
 
@@ -44,7 +44,7 @@ class CoverColors:
 
     def __init__(self, artist, album):
         """
-        Initializes the CoverColors object by fetching the cover art and converting it to a numpy array of RGB values.
+        Initializes the CoverPalette object by fetching the cover art and converting it to a numpy array of RGB values.
         """
         api_key, discogs_token = load_api_keys()
 

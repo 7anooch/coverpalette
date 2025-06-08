@@ -17,14 +17,14 @@ If you would rather not bother getting any API keys, artwork will attempt to be 
 
 **Create colormaps from album covers in three lines of code!**
 
-First, the ``CoverColors`` class makes calls to various APIs in order to fetch album artwork, and converts the image to arrays of RGB values.
+First, the ``CoverPalette`` class makes calls to various APIs in order to fetch album artwork, and converts the image to arrays of RGB values.
 Then, ``generate_cmap`` creates a matplotlib [ListedColormap](https://matplotlib.org/stable/api/_as_gen/matplotlib.colors.ListedColormap.html#matplotlib-colors-listedcolormap).
 
 
-    from covers2colors import CoverColors
+    from covers2colors import CoverPalette
 
-    covercolors = CoverColors('iron maiden', "powerslave")
-    cmap = covercolors.generate_cmap(n_colors=5, random_state=42)
+    coverpalette = CoverPalette('iron maiden', "powerslave")
+    cmap = coverpalette.generate_cmap(n_colors=5, random_state=42)
 
 Now, use the colormap in your plots!
 
@@ -85,15 +85,15 @@ The different methods of obtaining a palette will often return different palette
 
 ### Hexcodes
 
-When running the ``generate_cmap`` or the ``generate_optimal_cmap`` methods the CoverColors object will automatically
+When running the ``generate_cmap`` or the ``generate_optimal_cmap`` methods the CoverPalette object will automatically
 capture the resulting hexcodes from the colormap and store them as an attribute.
 
 
-    from covers2colors import CoverColors
+    from covers2colors import CoverPalette
 
-    covercolors = CoverColors('Nirvana', 'Nevermind')
-    covercolors.generate_cmap(n_colors=4, random_state=42)
-    print(covercolors.hexcodes)
+    coverpalette = CoverPalette('Nirvana', 'Nevermind')
+    coverpalette.generate_cmap(n_colors=4, random_state=42)
+    print(coverpalette.hexcodes)
 
 Output:
 
@@ -108,23 +108,23 @@ filepath stores the palette under ``~/.covers2colors`` and records useful
 metadata so you can browse palettes later.
 
 ```python
-from covers2colors import CoverColors
+from covers2colors import CoverPalette
 
-colors = CoverColors('Nirvana', 'Nevermind')
+colors = CoverPalette('Nirvana', 'Nevermind')
 colors.generate_cmap(n_colors=4, random_state=42)
 # Save with automatic naming
 colors.save_palette()
 
 # List stored palettes
-for p in CoverColors.list_palettes():
+for p in CoverPalette.list_palettes():
     print(p['name'], p['n_colors'])
 
 # Find palettes with five colors
-for p in CoverColors.find_palettes_by_color_count(5):
+for p in CoverPalette.find_palettes_by_color_count(5):
     print(p['name'], p['path'])
 
 # ...in another session
-new_colors = CoverColors('Nirvana', 'Nevermind')
+new_colors = CoverPalette('Nirvana', 'Nevermind')
 new_colors.load_palette_by_name('nirvana_nevermind_4')
 print(new_colors.hexcodes)
 ```
