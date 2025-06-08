@@ -105,10 +105,11 @@ Output:
 
 ### Saving and loading palettes
 
-You can write a generated palette to disk and reload it later using
-``save_palette`` and ``load_palette``. Calling ``save_palette`` without a
-filepath stores the palette under ``~/.covers2colors`` and records useful
-metadata so you can browse palettes later.
+You can store a palette and reload it later using ``save_palette`` and
+``load_palette``. Palettes are recorded in a JSON index under
+``~/.covers2colors/palettes/index.json``. Calling ``save_palette`` without a
+filepath saves just to this index; you can also provide a path to write the
+hexcodes to a separate JSON file.
 
 ```python
 from covers2colors import CoverPalette
@@ -124,7 +125,7 @@ for p in CoverPalette.list_palettes():
 
 # Find palettes with five colors
 for p in CoverPalette.find_palettes_by_color_count(5):
-    print(p['name'], p['path'])
+    print(p['name'])
 
 # ...in another session
 new_colors = CoverPalette('Nirvana', 'Nevermind')

@@ -292,17 +292,13 @@ class CoverPalette:
             print(f"Error displaying preview: {e}")
 
     def save_palette(self, path: Optional[str] = None, name: Optional[str] = None):
-        """Save the current hexcodes to ``path`` or to the default palette
-        directory.
+        """Save ``self.hexcodes`` and metadata.
 
-        If ``path`` ends with ``.json`` the hexcodes are stored as a JSON
-        array; otherwise, a plain text file with one hexcode per line is
-        created. When ``path`` is ``None``, the palette will be stored under
-        ``PALETTE_DIR`` with a filename derived from ``name`` or the artist and
-        album.
-
-        Metadata about the palette is recorded in ``index.json`` so that it can
-        be listed and retrieved later.
+        When ``path`` is ``None`` the palette is recorded only in
+        ``index.json`` under ``PALETTE_DIR``.  If a path is supplied the
+        hexcodes are also written to that location as JSON.  All palette
+        metadata and hexcodes are stored in ``index.json`` so that palettes can
+        easily be listed and loaded later.
 
         Raises:
             ValueError: If ``hexcodes`` have not been generated.
@@ -313,33 +309,30 @@ class CoverPalette:
 
         _ensure_palette_dir()
 
-        if path is None:
-            if not name:
-                safe_artist = self.artist.replace(" ", "_").lower()
-                safe_album = self.album.replace(" ", "_").lower()
-                name = f"{safe_artist}_{safe_album}_{len(self.hexcodes)}"
-            path = PALETTE_DIR / f"{name}.json"
-        else:
-            path = Path(path)
+        if not name:
+            safe_artist = self.artist.replace(" ", "_").lower()
+            safe_album = self.album.replace(" ", "_").lower()
+            name = f"{safe_artist}_{safe_album}_{len(self.hexcodes)}"
 
-        try:
-            with path.open("w") as f:
-                if str(path).lower().endswith(".json"):
+        json_path = Path(path) if path else None
+
+        if json_path:
+            try:
+                with json_path.open("w") as f:
                     json.dump(self.hexcodes, f)
-                else:
-                    f.write("\n".join(self.hexcodes))
-        except OSError as e:
-            print(f"Error saving palette to {path}: {e}")
-            return
+            except OSError as e:
+                print(f"Error saving palette to {json_path}: {e}")
+                json_path = None
 
         # Update index metadata
         metadata = {
-            "name": name or path.stem,
-            "path": str(path),
+            "name": name,
             "artist": self.artist,
             "album": self.album,
             "n_colors": len(self.hexcodes),
             "image_url": self.image_path,
+            "hexcodes": self.hexcodes,
+            "path": str(json_path) if json_path else None,
         }
 
         if INDEX_FILE.exists():
@@ -361,7 +354,7 @@ class CoverPalette:
         """Load hexcodes from ``path`` and set ``self.hexcodes``.
 
         Parameters:
-            path (str or Path): Path to a palette saved via :meth:`save_palette`.
+            path (str or Path): Path to a JSON file written by :meth:`save_palette`.
 
         Raises:
             FileNotFoundError: If the palette file does not exist.
@@ -372,10 +365,7 @@ class CoverPalette:
 
         try:
             with path.open("r") as f:
-                if str(path).lower().endswith(".json"):
-                    self.hexcodes = json.load(f)
-                else:
-                    self.hexcodes = [line.strip() for line in f if line.strip()]
+                self.hexcodes = json.load(f)
         except FileNotFoundError as e:
             raise FileNotFoundError(f"Palette file not found: {path}") from e
         except json.JSONDecodeError as e:
@@ -393,8 +383,12 @@ class CoverPalette:
 
         for entry in data:
             if entry.get("name") == name:
-                self.load_palette(entry["path"])
-                # Update image_path in case we want to display it later
+                if entry.get("hexcodes"):
+                    self.hexcodes = entry["hexcodes"]
+                elif entry.get("path"):
+                    self.load_palette(entry["path"])
+                else:
+                    raise FileNotFoundError(f"Palette data for '{name}' missing")
                 self.image_path = entry.get("image_url", self.image_path)
                 return
 

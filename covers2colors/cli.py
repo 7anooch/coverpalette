@@ -50,22 +50,24 @@ def main() -> None:
     )
     print("Hexcodes:", " ".join(palette.hexcodes))
 
+    save_path = args.save
+
     if args.preview:
         palette.preview_palette(cmap)
-        if not args.save:
+        if save_path is None:
             ans = input("Save this palette? [y/N] ").strip().lower()
             if ans in {"y", "yes"}:
                 path = input(
                     "Enter path to save (leave blank for default): "
                 ).strip()
-                args.save = path or None
+                save_path = path or None
 
-    if args.save is not None:
-        palette.save_palette(args.save)
-        if args.save:
-            print(f"Palette saved to {args.save}")
+    if save_path is not None:
+        palette.save_palette(save_path)
+        if save_path:
+            print(f"Palette saved to {save_path}")
         else:
-            print("Palette saved to default location")
+            print("Palette saved")
 
 
 if __name__ == "__main__":
