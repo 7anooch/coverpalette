@@ -99,3 +99,33 @@ Output:
 
 
     ['#0ea1c1', '#456a78', '#0269ae', '#091a2d']
+
+### Saving and loading palettes
+
+You can write a generated palette to disk and reload it later using
+``save_palette`` and ``load_palette``. Calling ``save_palette`` without a
+filepath stores the palette under ``~/.covers2colors`` and records useful
+metadata so you can browse palettes later.
+
+```python
+from covers2colors import CoverColors
+
+colors = CoverColors('Nirvana', 'Nevermind')
+colors.generate_cmap(n_colors=4, random_state=42)
+# Save with automatic naming
+colors.save_palette()
+
+# List stored palettes
+for p in CoverColors.list_palettes():
+    print(p['name'], p['n_colors'])
+
+# Find palettes with five colors
+for p in CoverColors.find_palettes_by_color_count(5):
+    print(p['name'], p['path'])
+
+# ...in another session
+new_colors = CoverColors('Nirvana', 'Nevermind')
+new_colors.load_palette_by_name('nirvana_nevermind_4')
+print(new_colors.hexcodes)
+```
+
