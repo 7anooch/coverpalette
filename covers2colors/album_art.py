@@ -1,16 +1,34 @@
-import pylast, requests, json, os, pkg_resources
-import numpy as np
-import musicbrainzngs, discogs_client
+import pylast
+import requests
+import json
+import os
+import pkg_resources
+import musicbrainzngs
+import discogs_client
 import time
 from fuzzywuzzy import fuzz
 
 api_key = None
 discogs_token = None
-keys_path = pkg_resources.resource_filename('covers2colors', 'keys.json')
-with open(keys_path, 'r') as f:
-    config = json.load(f)
-    api_key = config['lastfm']['api_key']
-    discogs_token = config['discogs']['token']
+
+
+def load_api_keys():
+    """Load API keys from ``keys.json`` or environment variables."""
+    global api_key, discogs_token
+    if api_key is not None or discogs_token is not None:
+        return api_key, discogs_token
+
+    keys_path = pkg_resources.resource_filename("covers2colors", "keys.json")
+    if os.path.exists(keys_path):
+        with open(keys_path, "r") as f:
+            config = json.load(f)
+            api_key = config.get("lastfm", {}).get("api_key")
+            discogs_token = config.get("discogs", {}).get("token")
+    else:
+        api_key = os.environ.get("LASTFM_API_KEY")
+        discogs_token = os.environ.get("DISCOGS_TOKEN")
+
+    return api_key, discogs_token
 
 USER_AGENT = "covers2colors"
 USER_AGENT_VERSION = "0.1"
@@ -100,12 +118,12 @@ def get_discogs_cover_art_url(artist_name, album_name, user_token):
 
         if results:
             best_match = results[0]
+            cover_art_url = None
             if best_match.images:
-                cover_art_url = best_match.images[0]['uri']
+                cover_art_url = best_match.images[0].get("uri")
             if cover_art_url:
                 return cover_art_url
-            else:
-                print(f"Cover art not found for {artist_name} - {album_name}")
+            print(f"Cover art not found for {artist_name} - {album_name}")
         else:
             print(f"Release not found for {artist_name} - {album_name}")
 
@@ -114,8 +132,15 @@ def get_discogs_cover_art_url(artist_name, album_name, user_token):
 
     return None
 
-def get_best_cover_art_url(artist_name, album_name, api_key = None, user_token = None):
-    """ Fetches the album cover art URL using the best available method. """
+def get_best_cover_art_url(artist_name, album_name, api_key=None, user_token=None):
+    """Fetch the album cover art URL using the best available method."""
+    if api_key is None or user_token is None:
+        loaded_api_key, loaded_discogs = load_api_keys()
+        if api_key is None:
+            api_key = loaded_api_key
+        if user_token is None:
+            user_token = loaded_discogs
+
     cover_art_url = None
 
     if api_key:

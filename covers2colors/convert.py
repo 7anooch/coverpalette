@@ -1,4 +1,4 @@
-import colorsys, json, os, pkg_resources
+import colorsys
 from urllib.error import HTTPError
 from urllib.error import URLError
 from urllib.request import urlopen
@@ -11,7 +11,7 @@ from PIL import Image
 from sklearn.cluster import KMeans
 from matplotlib.colors import ListedColormap
 from sklearn.cluster import MiniBatchKMeans
-from .album_art import get_best_cover_art_url
+from .album_art import get_best_cover_art_url, load_api_keys
 from scipy.spatial.distance import pdist, squareform
 
 class CoverColors:
@@ -36,13 +36,17 @@ class CoverColors:
         """
         Initializes the CoverColors object by fetching the cover art and converting it to a numpy array of RGB values.
         """
-        api_key = None
-        keys_path = pkg_resources.resource_filename('covers2colors', 'keys.json')
-        with open(keys_path, 'r') as f:
-            config = json.load(f)
-            api_key = config['lastfm']['api_key']
+        api_key, discogs_token = load_api_keys()
 
-        cover_art_url = get_best_cover_art_url(artist, album, api_key = api_key)
+        cover_art_url = get_best_cover_art_url(
+            artist,
+            album,
+            api_key=api_key,
+            user_token=discogs_token,
+        )
+        if not cover_art_url:
+            raise ValueError(f"Cover art not found for {artist} - {album}")
+
         self.image_path = cover_art_url
         self.album = album
         try:
