@@ -26,3 +26,8 @@ dependencies = [
 
 [project.scripts]
 coverpalette = "covers2colors.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["covers2colors*"]
+exclude = ["images*"]
