@@ -14,7 +14,9 @@ coverpalette "artist" "album" -n 5 --preview
 
 This prints the hex codes of the palette and saves them to a file if a path is
 provided. The preview option pops up a panel showing the album artwork, a
-sample plot using the colors and a color bar.
+sample plot using the colors and a color bar. When previewing without
+``--save``, you will be prompted whether to save the displayed palette so you
+don't need to rerun the command.
 
 ## Python
 
