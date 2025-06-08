@@ -25,6 +25,9 @@ To list previously saved palettes run:
 coverpalette list
 ```
 
+Add ``--pdf`` to generate a PDF that displays every palette with a horizontal
+color bar. The PDF is stored under ``~/.covers2colors/palettes/palettes.pdf``.
+
 ## Python
 
 You can also use the high level function `get_cmap` to create a colormap in one

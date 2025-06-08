@@ -425,3 +425,58 @@ class CoverPalette:
         start = max(0, (page - 1) * per_page)
         end = start + per_page
         return matches[start:end]
+
+    @staticmethod
+    def pdf_file() -> Path:
+        """Return the path to the stored palettes PDF."""
+
+        return PALETTE_DIR / "palettes.pdf"
+
+    @staticmethod
+    def create_palettes_pdf(force: bool = False) -> Optional[Path]:
+        """Generate a PDF listing saved palettes and return its path.
+
+        The PDF is stored under ``PALETTE_DIR`` as ``palettes.pdf``. If the
+        PDF already exists and is newer than ``index.json`` it is reused unless
+        ``force`` is ``True``. Returns ``None`` when no palettes are saved.
+        """
+
+        _ensure_palette_dir()
+        if not INDEX_FILE.exists():
+            return None
+
+        pdf_path = CoverPalette.pdf_file()
+
+        if not force and pdf_path.exists():
+            if pdf_path.stat().st_mtime >= INDEX_FILE.stat().st_mtime:
+                return pdf_path
+
+        with INDEX_FILE.open("r") as f:
+            data = json.load(f)
+
+        if not data:
+            return None
+
+        from matplotlib.backends.backend_pdf import PdfPages
+
+        with PdfPages(pdf_path) as pdf:
+            for entry in data:
+                hexcodes = entry.get("hexcodes") or []
+                cmap = ListedColormap([mpl.colors.to_rgb(h) for h in hexcodes])
+
+                fig, ax = plt.subplots(figsize=(6, 1))
+                ax.axis("off")
+                gradient = np.linspace(0, 1, 256).reshape(1, -1)
+                ax.imshow(gradient, aspect="auto", cmap=cmap)
+
+                text = (
+                    f"{entry.get('artist')} - {entry.get('album')} "
+                    f"({entry.get('n_colors')} colors)\n"
+                    + " ".join(hexcodes)
+                )
+                fig.text(0.05, 0.5, text, va="center", fontsize=8)
+
+                pdf.savefig(fig)
+                plt.close(fig)
+
+        return pdf_path

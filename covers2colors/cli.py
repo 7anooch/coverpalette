@@ -13,7 +13,30 @@ def main() -> None:
         list_parser.add_argument(
             "--per-page", type=int, default=10, help="Palettes per page"
         )
+        list_parser.add_argument(
+            "--pdf", action="store_true", help="Show a PDF of all palettes"
+        )
         args = list_parser.parse_args(sys.argv[2:])
+
+        if args.pdf:
+            path = CoverPalette.create_palettes_pdf()
+            if not path:
+                print("No saved palettes found")
+                return
+            try:
+                import os
+                import subprocess
+
+                if sys.platform.startswith("darwin"):
+                    subprocess.run(["open", str(path)], check=False)
+                elif os.name == "nt":
+                    os.startfile(str(path))  # type: ignore[attr-defined]
+                else:
+                    subprocess.run(["xdg-open", str(path)], check=False)
+            except Exception:
+                print(f"PDF saved to {path}")
+            return
+
         entries = CoverPalette.list_palettes(page=args.page, per_page=args.per_page)
         if not entries:
             print("No saved palettes found")
