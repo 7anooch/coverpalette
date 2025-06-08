@@ -22,7 +22,7 @@ store the palette in this index so you don't need to rerun the command.
 To list previously saved palettes run:
 
 ```bash
-coverpalette --list
+coverpalette list
 ```
 
 ## Python
