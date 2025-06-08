@@ -2,6 +2,8 @@ import colorsys
 from urllib.error import HTTPError
 from urllib.error import URLError
 from urllib.request import urlopen
+import json
+from pathlib import Path
 import matplotlib.pyplot as plt
 import matplotlib as mpl
 from mpl_toolkits.axes_grid1 import make_axes_locatable
@@ -13,6 +15,14 @@ from matplotlib.colors import ListedColormap
 from sklearn.cluster import MiniBatchKMeans
 from .album_art import get_best_cover_art_url, load_api_keys
 from scipy.spatial.distance import pdist, squareform
+
+# Directory where palettes are stored
+PALETTE_DIR = Path.home() / ".covers2colors" / "palettes"
+INDEX_FILE = PALETTE_DIR / "index.json"
+
+def _ensure_palette_dir() -> None:
+    """Create the palette directory if it does not exist."""
+    PALETTE_DIR.mkdir(parents=True, exist_ok=True)
 
 class CoverColors:
     """
@@ -47,6 +57,7 @@ class CoverColors:
         if not cover_art_url:
             raise ValueError(f"Cover art not found for {artist} - {album}")
 
+        self.artist = artist
         self.image_path = cover_art_url
         self.album = album
         try:
@@ -248,3 +259,144 @@ class CoverColors:
 
         except Exception as e:
             print(f"Error displaying image with colorbar: {e}")
+
+    def save_palette(self, path: str | None = None, name: str | None = None):
+        """Save the current hexcodes to ``path`` or to the default palette
+        directory.
+
+        If ``path`` ends with ``.json`` the hexcodes are stored as a JSON
+        array; otherwise, a plain text file with one hexcode per line is
+        created. When ``path`` is ``None``, the palette will be stored under
+        ``PALETTE_DIR`` with a filename derived from ``name`` or the artist and
+        album.
+
+        Metadata about the palette is recorded in ``index.json`` so that it can
+        be listed and retrieved later.
+
+        Raises:
+            ValueError: If ``hexcodes`` have not been generated.
+        """
+
+        if not self.hexcodes:
+            raise ValueError("No palette has been generated to save")
+
+        _ensure_palette_dir()
+
+        if path is None:
+            if not name:
+                safe_artist = self.artist.replace(" ", "_").lower()
+                safe_album = self.album.replace(" ", "_").lower()
+                name = f"{safe_artist}_{safe_album}_{len(self.hexcodes)}"
+            path = PALETTE_DIR / f"{name}.json"
+        else:
+            path = Path(path)
+
+        try:
+            with path.open("w") as f:
+                if str(path).lower().endswith(".json"):
+                    json.dump(self.hexcodes, f)
+                else:
+                    f.write("\n".join(self.hexcodes))
+        except OSError as e:
+            print(f"Error saving palette to {path}: {e}")
+            return
+
+        # Update index metadata
+        metadata = {
+            "name": name or path.stem,
+            "path": str(path),
+            "artist": self.artist,
+            "album": self.album,
+            "n_colors": len(self.hexcodes),
+            "image_url": self.image_path,
+        }
+
+        if INDEX_FILE.exists():
+            try:
+                with INDEX_FILE.open("r") as f:
+                    data = json.load(f)
+            except json.JSONDecodeError:
+                data = []
+        else:
+            data = []
+
+        # remove any existing entry with same name
+        data = [entry for entry in data if entry.get("name") != metadata["name"]]
+        data.append(metadata)
+        with INDEX_FILE.open("w") as f:
+            json.dump(data, f, indent=2)
+
+    def load_palette(self, path: str | Path):
+        """Load hexcodes from ``path`` and set ``self.hexcodes``.
+
+        Parameters:
+            path (str | Path): Path to a palette saved via :meth:`save_palette`.
+
+        Raises:
+            FileNotFoundError: If the palette file does not exist.
+            ValueError: If the palette cannot be parsed.
+        """
+
+        path = Path(path)
+
+        try:
+            with path.open("r") as f:
+                if str(path).lower().endswith(".json"):
+                    self.hexcodes = json.load(f)
+                else:
+                    self.hexcodes = [line.strip() for line in f if line.strip()]
+        except FileNotFoundError as e:
+            raise FileNotFoundError(f"Palette file not found: {path}") from e
+        except json.JSONDecodeError as e:
+            raise ValueError(f"Invalid palette file: {e}") from e
+
+    def load_palette_by_name(self, name: str):
+        """Load a saved palette using its registered ``name``."""
+
+        _ensure_palette_dir()
+        if not INDEX_FILE.exists():
+            raise FileNotFoundError("No saved palettes available")
+
+        with INDEX_FILE.open("r") as f:
+            data = json.load(f)
+
+        for entry in data:
+            if entry.get("name") == name:
+                self.load_palette(entry["path"])
+                # Update image_path in case we want to display it later
+                self.image_path = entry.get("image_url", self.image_path)
+                return
+
+        raise FileNotFoundError(f"Saved palette '{name}' not found")
+
+    @staticmethod
+    def list_palettes(page: int = 1, per_page: int = 10):
+        """Return a paginated list of saved palette metadata."""
+
+        _ensure_palette_dir()
+        if not INDEX_FILE.exists():
+            return []
+
+        with INDEX_FILE.open("r") as f:
+            data = json.load(f)
+
+        start = max(0, (page - 1) * per_page)
+        end = start + per_page
+        return data[start:end]
+
+    @staticmethod
+    def find_palettes_by_color_count(n_colors: int, page: int = 1, per_page: int = 10):
+        """Return saved palettes matching ``n_colors``."""
+
+        _ensure_palette_dir()
+        if not INDEX_FILE.exists():
+            return []
+
+        with INDEX_FILE.open("r") as f:
+            data = json.load(f)
+
+        matches = [entry for entry in data if entry.get("n_colors") == n_colors]
+
+        start = max(0, (page - 1) * per_page)
+        end = start + per_page
+        return matches[start:end]
