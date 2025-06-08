@@ -17,11 +17,21 @@ def main() -> None:
     parser.add_argument(
         "--save", type=str, default=None, help="Save palette to a file"
     )
+    parser.add_argument(
+        "--preview",
+        action="store_true",
+        help="Show a preview before optionally saving",
+    )
     args = parser.parse_args()
 
     palette = CoverPalette(args.artist, args.album)
-    palette.generate_cmap(n_colors=args.n_colors, random_state=args.random_state)
+    cmap = palette.generate_cmap(
+        n_colors=args.n_colors, random_state=args.random_state
+    )
     print("Hexcodes:", " ".join(palette.hexcodes))
+
+    if args.preview:
+        palette.preview_palette(cmap)
 
     if args.save:
         palette.save_palette(args.save)

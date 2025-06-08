@@ -260,6 +260,36 @@ class CoverPalette:
         except Exception as e:
             print(f"Error displaying image with colorbar: {e}")
 
+    def preview_palette(self, cmap):
+        """Show the album cover alongside a sample plot using ``cmap``."""
+
+        try:
+            with urlopen(self.image_path) as url:
+                with Image.open(url) as img:
+                    img_array = np.array(img)
+
+            fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(10, 4))
+
+            ax1.axis("off")
+            ax1.imshow(img_array)
+            divider = make_axes_locatable(ax1)
+            cax = divider.append_axes("right", size="5%", pad=0.05)
+            cb = fig.colorbar(mpl.cm.ScalarMappable(cmap=cmap), cax=cax)
+            cb.set_ticks([])
+
+            x = np.linspace(0, 10, 100)
+            for i, color in enumerate(cmap.colors):
+                ax2.plot(x, np.sin(x + i), color=color, linewidth=3)
+            ax2.set_title("Sample Plot")
+            ax2.set_xticks([])
+            ax2.set_yticks([])
+
+            plt.tight_layout()
+            plt.show()
+
+        except Exception as e:
+            print(f"Error displaying preview: {e}")
+
     def save_palette(self, path: str | None = None, name: str | None = None):
         """Save the current hexcodes to ``path`` or to the default palette
         directory.
