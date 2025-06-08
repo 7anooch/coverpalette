@@ -6,8 +6,8 @@ def main() -> None:
     parser = argparse.ArgumentParser(
         description="Create color palettes from album covers"
     )
-    parser.add_argument("artist", help="Name of the artist")
-    parser.add_argument("album", help="Name of the album")
+    parser.add_argument("artist", nargs="?", help="Name of the artist")
+    parser.add_argument("album", nargs="?", help="Name of the album")
     parser.add_argument(
         "-n", "--n-colors", type=int, default=4, help="Number of colors"
     )
@@ -22,7 +22,27 @@ def main() -> None:
         action="store_true",
         help="Show a preview before optionally saving",
     )
+    parser.add_argument(
+        "--list",
+        action="store_true",
+        help="List saved palettes and exit",
+    )
     args = parser.parse_args()
+
+    if args.list:
+        entries = CoverPalette.list_palettes()
+        if not entries:
+            print("No saved palettes found")
+            return
+        for entry in entries:
+            name = entry.get("name")
+            n = entry.get("n_colors")
+            path = entry.get("path")
+            print(f"{name} ({n} colors) - {path}")
+        return
+
+    if not args.artist or not args.album:
+        parser.error("artist and album are required unless --list is used")
 
     palette = CoverPalette(args.artist, args.album)
     cmap = palette.generate_cmap(

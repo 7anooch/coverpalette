@@ -18,6 +18,12 @@ sample plot using the colors and a color bar. When previewing without
 ``--save``, you will be prompted whether to save the displayed palette so you
 don't need to rerun the command.
 
+To list previously saved palettes run:
+
+```bash
+coverpalette --list
+```
+
 ## Python
 
 You can also use the high level function `get_cmap` to create a colormap in one
