@@ -9,7 +9,7 @@ Before installation, consider setting up some API keys if you so wish.
 
 To get album covers I try 3 different APIs (Last.fm, MusicBrains, and Discogs), two of which require API keys (Last.fm and discogs). Last.fm is the preferred API. 
 
-To set up your API keys, you will want to rename `covers2colors/keys_template.json` to `covers2colors/keys.json` and add in your API keys in there. Once the file is renamed the package will assume it contains valid api keys and will attempt to use them.
+To set up your API keys, you can rename `covers2colors/keys_template.json` to `covers2colors/keys.json` and add your API keys in there. If this file is missing, the package will look for the environment variables `LASTFM_API_KEY` and `DISCOGS_TOKEN`.
 
 If you would rather not bother getting any API keys, artwork will attempt to be fetched from MusicBrainz only. things should still work fine, although the MusicBrains API can be slow. I've also noticed that the color on some album covers appear muted on Discogs and MusicBrains.
 
@@ -89,7 +89,7 @@ When running the ``generate_cmap`` or the ``generate_optimal_cmap`` methods the 
 capture the resulting hexcodes from the colormap and store them as an attribute.
 
 
-    from cover2colors import CoverColors
+    from covers2colors import CoverColors
 
     covercolors = CoverColors('Nirvana', 'Nevermind')
     covercolors.generate_cmap(n_colors=4, random_state=42)

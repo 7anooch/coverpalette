@@ -15,9 +15,6 @@ setup(
         "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent",
     ],
-    package_data={
-        'covers2colors': ['keys.json'], 
-    },
     python_requires='>=3.6',
     install_requires=[
         "matplotlib",
