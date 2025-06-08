@@ -4,6 +4,8 @@
 
 Clone the repo, navigate inside it and use ``pip install .``
 
+For detailed instructions and command line usage see [USAGE.md](USAGE.md).
+
 ### API access to album covers
 Before installation, consider setting up some API keys if you so wish.
 
