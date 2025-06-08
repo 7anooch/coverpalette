@@ -57,10 +57,7 @@ def main() -> None:
         if save_path is None:
             ans = input("Save this palette? [y/N] ").strip().lower()
             if ans in {"y", "yes"}:
-                path = input(
-                    "Enter path to save (leave blank for default): "
-                ).strip()
-                save_path = path or None
+                save_path = None
 
     if save_path is not None:
         palette.save_palette(save_path)
