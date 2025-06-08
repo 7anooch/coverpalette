@@ -464,18 +464,27 @@ class CoverPalette:
                 hexcodes = entry.get("hexcodes") or []
                 cmap = ListedColormap([mpl.colors.to_rgb(h) for h in hexcodes])
 
-                fig, ax = plt.subplots(figsize=(6, 1))
-                ax.axis("off")
+                fig, (text_ax, bar_ax) = plt.subplots(
+                    1,
+                    2,
+                    figsize=(6, 1),
+                    gridspec_kw={"width_ratios": [3, 1]},
+                )
+
+                for ax in (text_ax, bar_ax):
+                    ax.axis("off")
+
                 gradient = np.linspace(0, 1, 256).reshape(1, -1)
-                ax.imshow(gradient, aspect="auto", cmap=cmap)
+                bar_ax.imshow(gradient, aspect="auto", cmap=cmap)
 
                 text = (
                     f"{entry.get('artist')} - {entry.get('album')} "
                     f"({entry.get('n_colors')} colors)\n"
                     + " ".join(hexcodes)
                 )
-                fig.text(0.05, 0.5, text, va="center", fontsize=8)
+                text_ax.text(0, 0.5, text, va="center", ha="left", fontsize=8)
 
+                plt.tight_layout(pad=0.25)
                 pdf.savefig(fig)
                 plt.close(fig)
 
