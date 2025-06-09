@@ -136,3 +136,18 @@ new_colors.load_palette_by_name('nirvana_nevermind_4')
 print(new_colors.hexcodes)
 ```
 
+### Checking color-blind friendliness
+
+You can test if a palette remains distinguishable for common color vision
+deficiencies.  Use :func:`covers2colors.colorblind.is_colorblind_friendly` on a
+list of colors or the :meth:`CoverPalette.colorblind_friendly` method with a
+colormap:
+
+```python
+from covers2colors import CoverPalette
+
+palette = CoverPalette('Iron Maiden', 'Powerslave')
+cmap = palette.generate_cmap(n_colors=5, random_state=42)
+print(palette.colorblind_friendly(cmap))
+```
+

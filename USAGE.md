@@ -46,3 +46,9 @@ print(cmap.colors)
 
 The underlying `CoverPalette` class offers additional methods for more complex
 workflows.
+
+### Checking palettes for color-blind users
+
+Use the :func:`covers2colors.colorblind.is_colorblind_friendly` function or
+``CoverPalette.colorblind_friendly`` to ensure your colors remain distinct for
+people with color vision deficiencies.

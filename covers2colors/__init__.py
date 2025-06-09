@@ -2,6 +2,7 @@ from typing import Optional
 
 from .convert import CoverPalette
 from .album_art import get_best_cover_art_url
+from .colorblind import is_colorblind_friendly
 
 
 def get_cmap(artist: str, album: str, n_colors: int = 4, random_state: Optional[int] = None):

@@ -15,6 +15,7 @@ from sklearn.cluster import KMeans
 from matplotlib.colors import ListedColormap
 from sklearn.cluster import MiniBatchKMeans
 from .album_art import get_best_cover_art_url, load_api_keys
+from .colorblind import is_colorblind_friendly
 from scipy.spatial.distance import pdist, squareform
 
 # Directory where palettes are stored
@@ -297,6 +298,23 @@ class CoverPalette:
 
         except Exception as e:
             print(f"Error displaying preview: {e}")
+
+    def colorblind_friendly(self, cmap, deficiency: str = "deuteranopia", threshold: float = 0.1) -> bool:
+        """Return ``True`` if ``cmap`` remains distinct for a color vision deficiency.
+
+        Parameters
+        ----------
+        cmap : matplotlib.colors.Colormap
+            Colormap to evaluate.
+        deficiency : str, optional
+            One of ``"protanopia"``, ``"deuteranopia"`` or ``"tritanopia"``.
+        threshold : float, optional
+            Minimum distance between simulated colors.  Smaller values mark
+            colors as indistinguishable.  Defaults to 0.1.
+        """
+
+        colors = getattr(cmap, "colors", [])
+        return is_colorblind_friendly(colors, deficiency=deficiency, threshold=threshold)
 
     def save_palette(self, path: Optional[str] = None, name: Optional[str] = None):
         """Save ``self.hexcodes`` and metadata.
