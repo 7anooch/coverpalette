@@ -616,15 +616,15 @@ class CoverPalette:
 
                 fig, axes = plt.subplots(
                     rows,
-                    2,
-                    figsize=(6, rows),
-                    gridspec_kw={"width_ratios": [3, 1]},
+                    3,
+                    figsize=(8, rows),
+                    gridspec_kw={"width_ratios": [1, 3, 2]},
                 )
 
                 axes_list = axes if rows > 1 else [axes]
 
-                for (text_ax, bar_ax), entry in zip(axes_list, chunk):
-                    for ax in (text_ax, bar_ax):
+                for (img_ax, bar_ax, text_ax), entry in zip(axes_list, chunk):
+                    for ax in (img_ax, bar_ax, text_ax):
                         ax.axis("off")
 
                     hexcodes = entry.get("hexcodes") or []
@@ -633,12 +633,23 @@ class CoverPalette:
                     gradient = np.linspace(0, 1, 256).reshape(1, -1)
                     bar_ax.imshow(gradient, aspect="auto", cmap=cmap)
 
+                    artist = (entry.get("artist") or "").title()
+                    album = (entry.get("album") or "").title()
                     text = (
-                        f"{entry.get('artist')} - {entry.get('album')} "
+                        f"{artist} - {album} "
                         f"({entry.get('n_colors')} colors)\n"
                         + " ".join(hexcodes)
                     )
                     text_ax.text(0, 0.5, text, va="center", ha="left", fontsize=8)
+
+                    img_url = entry.get("image_url")
+                    if img_url:
+                        try:
+                            with urlopen(img_url) as url:
+                                with Image.open(url) as img:
+                                    img_ax.imshow(img)
+                        except Exception:
+                            pass
 
                 plt.tight_layout(pad=0.25)
                 pdf.savefig(fig)
