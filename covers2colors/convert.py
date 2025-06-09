@@ -181,7 +181,13 @@ class CoverPalette:
         
         return distinct_colors, distinct_cmap
     
-    def generate_distinct_optimal_cmap(self, max_colors=10, n_distinct_colors=4, palette_name=None, random_state=None):
+    def generate_distinct_optimal_cmap(
+        self,
+        max_colors: int = 10,
+        n_distinct_colors: int = 4,
+        palette_name: Optional[str] = None,
+        random_state: Optional[int] = None,
+    ):
         """Generates an optimal colormap and then picks the most distinct colors from it.
 
         Args:
@@ -217,6 +223,7 @@ class CoverPalette:
                 best_distinct_cmap = distinct_cmap
         
         best_distinct_colors = np.array(best_distinct_colors)
+        self.hexcodes = [mpl.colors.rgb2hex(c) for c in best_distinct_colors]
 
         return best_distinct_colors, best_distinct_cmap
 
@@ -459,30 +466,37 @@ class CoverPalette:
 
         from matplotlib.backends.backend_pdf import PdfPages
 
+        per_page = 10
         with PdfPages(pdf_path) as pdf:
-            for entry in data:
-                hexcodes = entry.get("hexcodes") or []
-                cmap = ListedColormap([mpl.colors.to_rgb(h) for h in hexcodes])
+            for i in range(0, len(data), per_page):
+                chunk = data[i : i + per_page]
+                rows = len(chunk)
 
-                fig, (text_ax, bar_ax) = plt.subplots(
-                    1,
+                fig, axes = plt.subplots(
+                    rows,
                     2,
-                    figsize=(6, 1),
+                    figsize=(6, rows),
                     gridspec_kw={"width_ratios": [3, 1]},
                 )
 
-                for ax in (text_ax, bar_ax):
-                    ax.axis("off")
+                axes_list = axes if rows > 1 else [axes]
 
-                gradient = np.linspace(0, 1, 256).reshape(1, -1)
-                bar_ax.imshow(gradient, aspect="auto", cmap=cmap)
+                for (text_ax, bar_ax), entry in zip(axes_list, chunk):
+                    for ax in (text_ax, bar_ax):
+                        ax.axis("off")
 
-                text = (
-                    f"{entry.get('artist')} - {entry.get('album')} "
-                    f"({entry.get('n_colors')} colors)\n"
-                    + " ".join(hexcodes)
-                )
-                text_ax.text(0, 0.5, text, va="center", ha="left", fontsize=8)
+                    hexcodes = entry.get("hexcodes") or []
+                    cmap = ListedColormap([mpl.colors.to_rgb(h) for h in hexcodes])
+
+                    gradient = np.linspace(0, 1, 256).reshape(1, -1)
+                    bar_ax.imshow(gradient, aspect="auto", cmap=cmap)
+
+                    text = (
+                        f"{entry.get('artist')} - {entry.get('album')} "
+                        f"({entry.get('n_colors')} colors)\n"
+                        + " ".join(hexcodes)
+                    )
+                    text_ax.text(0, 0.5, text, va="center", ha="left", fontsize=8)
 
                 plt.tight_layout(pad=0.25)
                 pdf.savefig(fig)

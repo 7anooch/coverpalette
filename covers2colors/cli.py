@@ -82,7 +82,9 @@ def main() -> None:
     args = parser.parse_args()
 
     palette = CoverPalette(args.artist, args.album)
-    cmap = palette.generate_cmap(n_colors=args.n_colors, random_state=args.random_state)
+    _, cmap = palette.generate_distinct_optimal_cmap(
+        n_distinct_colors=args.n_colors, random_state=args.random_state
+    )
     print("Hexcodes:", " ".join(palette.hexcodes))
 
     if args.save:
