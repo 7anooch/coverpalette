@@ -17,8 +17,9 @@ coverpalette artist - album -n 5       # preview then optionally save
 coverpalette artist - album -n 5 --save  # save directly
 ```
 
-This prints the hex codes of the palette. Palettes saved via the command line
-are recorded in ``~/.covers2colors/palettes/index.json`` along with metadata.
+This prints the hex codes of the palette and reports whether the colors are
+color-blind friendly. Palettes saved via the command line are recorded in
+``~/.covers2colors/palettes/index.json`` along with metadata.
 The preview window displays the album artwork, a sample plot using the colors
 and a color bar. If you run the command without ``--save`` you'll be asked
 whether to store the palette so you don't need to rerun the command.
@@ -49,6 +50,7 @@ workflows.
 
 ### Checking palettes for color-blind users
 
-Use the :func:`covers2colors.colorblind.is_colorblind_friendly` function or
-``CoverPalette.colorblind_friendly`` to ensure your colors remain distinct for
-people with color vision deficiencies.
+Every palette generation method automatically evaluates color-blind
+friendliness and stores the result on ``CoverPalette.is_colorblind_friendly``.
+You can also use the :func:`covers2colors.colorblind.is_colorblind_friendly`
+function or ``CoverPalette.colorblind_friendly`` for manual checks.

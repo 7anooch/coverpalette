@@ -86,6 +86,7 @@ def main() -> None:
         n_distinct_colors=args.n_colors, random_state=args.random_state
     )
     print("Hexcodes:", " ".join(palette.hexcodes))
+    print("Color-blind friendly:", palette.is_colorblind_friendly)
 
     if args.save:
         palette.save_palette()

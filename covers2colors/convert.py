@@ -42,6 +42,8 @@ class CoverPalette:
         transparent_pixels (numpy.ndarray): A boolean numpy array where True indicates the corresponding pixel in the cover art is transparent.
         kmeans (KMeans): The KMeans object after fitting to the RGB values. None if the `fit_kmeans` method has not been called.
         hexcodes (list): The list of hexcodes representing the dominant colors in the cover art. None if the `get_hexcodes` method has not been called.
+        is_colorblind_friendly (bool | None): Result of automatically checking
+            the latest generated palette for color-blind friendliness.
     """
 
     def __init__(self, artist, album):
@@ -78,6 +80,7 @@ class CoverPalette:
         self.pixels = self.pixels[:, :3]
         self.kmeans = None
         self.hexcodes = None
+        self.is_colorblind_friendly = None
 
     def generate_cmap(self, n_colors=4, palette_name = None, random_state=None):
         """Generates a matplotlib ListedColormap from an image.
@@ -115,6 +118,7 @@ class CoverPalette:
         cmap.colors = np.where(np.isclose(cmap.colors, 0), 1e-6, cmap.colors)
 
         self.hexcodes = [mpl.colors.rgb2hex(c) for c in cmap.colors]
+        self.is_colorblind_friendly = self.colorblind_friendly(cmap)
         return cmap
 
     def generate_optimal_cmap(self, max_colors=10, palette_name=None, random_state=None):
@@ -155,6 +159,8 @@ class CoverPalette:
         except KeyError:
             # Kneed did not find an optimal point so we don't record any hex values
             self.hexcodes = None
+        if best_n_colors in cmaps:
+            self.is_colorblind_friendly = self.colorblind_friendly(cmaps[best_n_colors])
         return cmaps, best_n_colors, ssd
     
     def get_distinct_colors(self, cmap, n_colors):
@@ -225,6 +231,8 @@ class CoverPalette:
         
         best_distinct_colors = np.array(best_distinct_colors)
         self.hexcodes = [mpl.colors.rgb2hex(c) for c in best_distinct_colors]
+        if best_distinct_cmap is not None:
+            self.is_colorblind_friendly = self.colorblind_friendly(best_distinct_cmap)
 
         return best_distinct_colors, best_distinct_cmap
 
