@@ -4,6 +4,7 @@ from urllib.error import URLError
 from urllib.request import urlopen
 import json
 from pathlib import Path
+from typing import Optional, Union
 import matplotlib.pyplot as plt
 import matplotlib as mpl
 from mpl_toolkits.axes_grid1 import make_axes_locatable
@@ -180,7 +181,13 @@ class CoverPalette:
         
         return distinct_colors, distinct_cmap
     
-    def generate_distinct_optimal_cmap(self, max_colors=10, n_distinct_colors=4, palette_name=None, random_state=None):
+    def generate_distinct_optimal_cmap(
+        self,
+        max_colors: int = 10,
+        n_distinct_colors: int = 4,
+        palette_name: Optional[str] = None,
+        random_state: Optional[int] = None,
+    ):
         """Generates an optimal colormap and then picks the most distinct colors from it.
 
         Args:
@@ -216,6 +223,7 @@ class CoverPalette:
                 best_distinct_cmap = distinct_cmap
         
         best_distinct_colors = np.array(best_distinct_colors)
+        self.hexcodes = [mpl.colors.rgb2hex(c) for c in best_distinct_colors]
 
         return best_distinct_colors, best_distinct_cmap
 
@@ -260,18 +268,44 @@ class CoverPalette:
         except Exception as e:
             print(f"Error displaying image with colorbar: {e}")
 
-    def save_palette(self, path: str | None = None, name: str | None = None):
-        """Save the current hexcodes to ``path`` or to the default palette
-        directory.
+    def preview_palette(self, cmap):
+        """Show the album cover alongside a sample plot using ``cmap``."""
 
-        If ``path`` ends with ``.json`` the hexcodes are stored as a JSON
-        array; otherwise, a plain text file with one hexcode per line is
-        created. When ``path`` is ``None``, the palette will be stored under
-        ``PALETTE_DIR`` with a filename derived from ``name`` or the artist and
-        album.
+        try:
+            with urlopen(self.image_path) as url:
+                with Image.open(url) as img:
+                    img_array = np.array(img)
 
-        Metadata about the palette is recorded in ``index.json`` so that it can
-        be listed and retrieved later.
+            fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(10, 4))
+
+            ax1.axis("off")
+            ax1.imshow(img_array)
+            divider = make_axes_locatable(ax1)
+            cax = divider.append_axes("right", size="5%", pad=0.05)
+            cb = fig.colorbar(mpl.cm.ScalarMappable(cmap=cmap), cax=cax)
+            cb.set_ticks([])
+
+            x = np.linspace(0, 10, 100)
+            for i, color in enumerate(cmap.colors):
+                ax2.plot(x, np.sin(x + i), color=color, linewidth=3)
+            ax2.set_title("Sample Plot")
+            ax2.set_xticks([])
+            ax2.set_yticks([])
+
+            plt.tight_layout()
+            plt.show()
+
+        except Exception as e:
+            print(f"Error displaying preview: {e}")
+
+    def save_palette(self, path: Optional[str] = None, name: Optional[str] = None):
+        """Save ``self.hexcodes`` and metadata.
+
+        When ``path`` is ``None`` the palette is recorded only in
+        ``index.json`` under ``PALETTE_DIR``.  If a path is supplied the
+        hexcodes are also written to that location as JSON.  All palette
+        metadata and hexcodes are stored in ``index.json`` so that palettes can
+        easily be listed and loaded later.
 
         Raises:
             ValueError: If ``hexcodes`` have not been generated.
@@ -282,33 +316,30 @@ class CoverPalette:
 
         _ensure_palette_dir()
 
-        if path is None:
-            if not name:
-                safe_artist = self.artist.replace(" ", "_").lower()
-                safe_album = self.album.replace(" ", "_").lower()
-                name = f"{safe_artist}_{safe_album}_{len(self.hexcodes)}"
-            path = PALETTE_DIR / f"{name}.json"
-        else:
-            path = Path(path)
+        if not name:
+            safe_artist = self.artist.replace(" ", "_").lower()
+            safe_album = self.album.replace(" ", "_").lower()
+            name = f"{safe_artist}_{safe_album}_{len(self.hexcodes)}"
 
-        try:
-            with path.open("w") as f:
-                if str(path).lower().endswith(".json"):
+        json_path = Path(path) if path else None
+
+        if json_path:
+            try:
+                with json_path.open("w") as f:
                     json.dump(self.hexcodes, f)
-                else:
-                    f.write("\n".join(self.hexcodes))
-        except OSError as e:
-            print(f"Error saving palette to {path}: {e}")
-            return
+            except OSError as e:
+                print(f"Error saving palette to {json_path}: {e}")
+                json_path = None
 
         # Update index metadata
         metadata = {
-            "name": name or path.stem,
-            "path": str(path),
+            "name": name,
             "artist": self.artist,
             "album": self.album,
             "n_colors": len(self.hexcodes),
             "image_url": self.image_path,
+            "hexcodes": self.hexcodes,
+            "path": str(json_path) if json_path else None,
         }
 
         if INDEX_FILE.exists():
@@ -326,11 +357,11 @@ class CoverPalette:
         with INDEX_FILE.open("w") as f:
             json.dump(data, f, indent=2)
 
-    def load_palette(self, path: str | Path):
+    def load_palette(self, path: Union[str, Path]):
         """Load hexcodes from ``path`` and set ``self.hexcodes``.
 
         Parameters:
-            path (str | Path): Path to a palette saved via :meth:`save_palette`.
+            path (str or Path): Path to a JSON file written by :meth:`save_palette`.
 
         Raises:
             FileNotFoundError: If the palette file does not exist.
@@ -341,10 +372,7 @@ class CoverPalette:
 
         try:
             with path.open("r") as f:
-                if str(path).lower().endswith(".json"):
-                    self.hexcodes = json.load(f)
-                else:
-                    self.hexcodes = [line.strip() for line in f if line.strip()]
+                self.hexcodes = json.load(f)
         except FileNotFoundError as e:
             raise FileNotFoundError(f"Palette file not found: {path}") from e
         except json.JSONDecodeError as e:
@@ -362,8 +390,12 @@ class CoverPalette:
 
         for entry in data:
             if entry.get("name") == name:
-                self.load_palette(entry["path"])
-                # Update image_path in case we want to display it later
+                if entry.get("hexcodes"):
+                    self.hexcodes = entry["hexcodes"]
+                elif entry.get("path"):
+                    self.load_palette(entry["path"])
+                else:
+                    raise FileNotFoundError(f"Palette data for '{name}' missing")
                 self.image_path = entry.get("image_url", self.image_path)
                 return
 
@@ -400,3 +432,74 @@ class CoverPalette:
         start = max(0, (page - 1) * per_page)
         end = start + per_page
         return matches[start:end]
+
+    @staticmethod
+    def pdf_file() -> Path:
+        """Return the path to the stored palettes PDF."""
+
+        return PALETTE_DIR / "palettes.pdf"
+
+    @staticmethod
+    def create_palettes_pdf(force: bool = False) -> Optional[Path]:
+        """Generate a PDF listing saved palettes and return its path.
+
+        The PDF is stored under ``PALETTE_DIR`` as ``palettes.pdf``. If the
+        PDF already exists and is newer than ``index.json`` it is reused unless
+        ``force`` is ``True``. Returns ``None`` when no palettes are saved.
+        """
+
+        _ensure_palette_dir()
+        if not INDEX_FILE.exists():
+            return None
+
+        pdf_path = CoverPalette.pdf_file()
+
+        if not force and pdf_path.exists():
+            if pdf_path.stat().st_mtime >= INDEX_FILE.stat().st_mtime:
+                return pdf_path
+
+        with INDEX_FILE.open("r") as f:
+            data = json.load(f)
+
+        if not data:
+            return None
+
+        from matplotlib.backends.backend_pdf import PdfPages
+
+        per_page = 10
+        with PdfPages(pdf_path) as pdf:
+            for i in range(0, len(data), per_page):
+                chunk = data[i : i + per_page]
+                rows = len(chunk)
+
+                fig, axes = plt.subplots(
+                    rows,
+                    2,
+                    figsize=(6, rows),
+                    gridspec_kw={"width_ratios": [3, 1]},
+                )
+
+                axes_list = axes if rows > 1 else [axes]
+
+                for (text_ax, bar_ax), entry in zip(axes_list, chunk):
+                    for ax in (text_ax, bar_ax):
+                        ax.axis("off")
+
+                    hexcodes = entry.get("hexcodes") or []
+                    cmap = ListedColormap([mpl.colors.to_rgb(h) for h in hexcodes])
+
+                    gradient = np.linspace(0, 1, 256).reshape(1, -1)
+                    bar_ax.imshow(gradient, aspect="auto", cmap=cmap)
+
+                    text = (
+                        f"{entry.get('artist')} - {entry.get('album')} "
+                        f"({entry.get('n_colors')} colors)\n"
+                        + " ".join(hexcodes)
+                    )
+                    text_ax.text(0, 0.5, text, va="center", ha="left", fontsize=8)
+
+                plt.tight_layout(pad=0.25)
+                pdf.savefig(fig)
+                plt.close(fig)
+
+        return pdf_path

@@ -1,0 +1,48 @@
+# Usage Guide
+
+This package can generate matplotlib color maps from album artwork.
+
+## Command line
+
+After installing the package, run the `coverpalette` command to quickly
+obtain a palette. By default a preview window will open so you can inspect
+the colors before deciding whether to save them. Use `--save` to bypass the
+preview and store the palette immediately.
+
+The artist and album can be entered without quotes by separating them with a
+single dash (`-`).
+
+```bash
+coverpalette artist - album -n 5       # preview then optionally save
+coverpalette artist - album -n 5 --save  # save directly
+```
+
+This prints the hex codes of the palette. Palettes saved via the command line
+are recorded in ``~/.covers2colors/palettes/index.json`` along with metadata.
+The preview window displays the album artwork, a sample plot using the colors
+and a color bar. If you run the command without ``--save`` you'll be asked
+whether to store the palette so you don't need to rerun the command.
+
+To list previously saved palettes run:
+
+```bash
+coverpalette list
+```
+
+Add ``--pdf`` to generate a PDF that displays every palette with a horizontal
+color bar. The PDF is stored under ``~/.covers2colors/palettes/palettes.pdf``.
+
+## Python
+
+You can also use the high level function `get_cmap` to create a colormap in one
+call:
+
+```python
+from covers2colors import get_cmap
+
+cmap = get_cmap("Nirvana", "Nevermind", n_colors=4)
+print(cmap.colors)
+```
+
+The underlying `CoverPalette` class offers additional methods for more complex
+workflows.

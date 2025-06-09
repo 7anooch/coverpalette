@@ -1,0 +1,33 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "covers2colors"
+version = "0.1"
+description = "Generate color palettes from album covers"
+readme = "README.md"
+requires-python = ">=3.6"
+authors = [{name = "Your Name"}]
+license = {file = "LICENSE"}
+dependencies = [
+    "matplotlib",
+    "numpy",
+    "kneed",
+    "pillow",
+    "scikit-learn",
+    "scipy",
+    "fuzzywuzzy",
+    "discogs_client",
+    "musicbrainzngs",
+    "pylast",
+    "requests"
+]
+
+[project.scripts]
+coverpalette = "covers2colors.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["covers2colors*"]
+exclude = ["images*"]
