@@ -5,19 +5,20 @@ This package can generate matplotlib color maps from album artwork.
 ## Command line
 
 After installing the package, run the `coverpalette` command to quickly
-obtain a palette. Use `--preview` to see a plot and the album art before saving.
+obtain a palette. By default a preview window will open so you can inspect
+the colors before deciding whether to save them. Use `--save` to bypass the
+preview and store the palette immediately.
 
 ```bash
-coverpalette "artist" "album" -n 5 --save mypalette.json
-coverpalette "artist" "album" -n 5 --preview
+coverpalette "artist" "album" -n 5       # preview then optionally save
+coverpalette "artist" "album" -n 5 --save  # save directly
 ```
 
-This prints the hex codes of the palette and saves them as JSON if you provide a
-path. Palettes saved via the command line are also recorded in
-``~/.covers2colors/palettes/index.json`` along with metadata. The preview
-option pops up a panel showing the album artwork, a sample plot using the colors
-and a color bar. When previewing without ``--save``, you'll be asked whether to
-store the palette in this index so you don't need to rerun the command.
+This prints the hex codes of the palette. Palettes saved via the command line
+are recorded in ``~/.covers2colors/palettes/index.json`` along with metadata.
+The preview window displays the album artwork, a sample plot using the colors
+and a color bar. If you run the command without ``--save`` you'll be asked
+whether to store the palette so you don't need to rerun the command.
 
 To list previously saved palettes run:
 

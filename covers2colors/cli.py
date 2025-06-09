@@ -55,9 +55,10 @@ def main() -> None:
     parser.add_argument("album", help="Name of the album")
     parser.add_argument("-n", "--n-colors", type=int, default=4, help="Number of colors")
     parser.add_argument("--random-state", type=int, default=None, help="Random seed")
-    parser.add_argument("--save", type=str, default=None, help="Save palette to a file")
     parser.add_argument(
-        "--preview", action="store_true", help="Show a preview before optionally saving"
+        "--save",
+        action="store_true",
+        help="Save without previewing the palette",
     )
     args = parser.parse_args()
 
@@ -65,21 +66,14 @@ def main() -> None:
     cmap = palette.generate_cmap(n_colors=args.n_colors, random_state=args.random_state)
     print("Hexcodes:", " ".join(palette.hexcodes))
 
-    save_path = args.save
-    should_save = args.save is not None
-
-    if args.preview:
+    if args.save:
+        palette.save_palette()
+        print("Palette saved")
+    else:
         palette.preview_palette(cmap)
-        if args.save is None:
-            ans = input("Save this palette? [y/N] ").strip().lower()
-            if ans in {"y", "yes"}:
-                should_save = True
-
-    if should_save:
-        palette.save_palette(save_path)
-        if save_path:
-            print(f"Palette saved to {save_path}")
-        else:
+        ans = input("Save this palette? [y/N] ").strip().lower()
+        if ans in {"y", "yes"}:
+            palette.save_palette()
             print("Palette saved")
 
 
