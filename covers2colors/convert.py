@@ -323,16 +323,19 @@ class CoverPalette:
         best_cmap = None
         for cmap in cmaps.values():
             colors = np.array(cmap.colors)
-            colors = self._filter_colors(colors, light=light, dark=dark, bold=bold)
-            if len(colors) < n_distinct_colors:
-                continue
-            tmp_cmap = ListedColormap(colors)
-            colors, dcmap = self.get_hue_distinct_colors(tmp_cmap, n_distinct_colors)
-            d = self._hue_distinctness(colors)
+            filtered = self._filter_colors(colors, light=light, dark=dark, bold=bold)
+            if len(filtered) < n_distinct_colors:
+                filtered = colors
+            tmp_cmap = ListedColormap(filtered)
+            distinct, dcmap = self.get_hue_distinct_colors(tmp_cmap, n_distinct_colors)
+            d = self._hue_distinctness(distinct)
             if d > best_distinct:
                 best_distinct = d
-                best_colors = colors
+                best_colors = distinct
                 best_cmap = dcmap
+
+        if best_colors is None:
+            raise ValueError("Unable to select distinct hues with the given parameters")
 
         best_colors = np.array(best_colors)
         self.hexcodes = [mpl.colors.rgb2hex(c) for c in best_colors]
