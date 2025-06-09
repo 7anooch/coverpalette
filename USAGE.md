@@ -34,8 +34,16 @@ To list previously saved palettes run:
 coverpalette list
 ```
 
-Add ``--pdf`` to generate a PDF that displays every palette with a horizontal
-color bar. The PDF is stored under ``~/.covers2colors/palettes/palettes.pdf``.
+Each entry is shown with a numeric ``id`` which can be used to load or delete
+palettes.  Add ``--pdf`` to generate a PDF that displays every palette with a
+horizontal color bar. The PDF is stored under
+``~/.covers2colors/palettes/palettes.pdf``.
+
+To remove a saved palette use:
+
+```bash
+coverpalette delete ID
+```
 
 ## Python
 

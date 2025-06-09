@@ -42,10 +42,25 @@ def main() -> None:
             print("No saved palettes found")
             return
         for entry in entries:
-            name = entry.get("name")
+            pid = entry.get("id")
+            artist = entry.get("artist")
+            album = entry.get("album")
             n = entry.get("n_colors")
             path = entry.get("path")
-            print(f"{name} ({n} colors) - {path}")
+            print(f"#{pid}: {artist} - {album} ({n} colors) - {path}")
+        return
+
+    if len(sys.argv) > 1 and sys.argv[1] == "delete":
+        del_parser = argparse.ArgumentParser(
+            prog="coverpalette delete", description="Delete a saved palette"
+        )
+        del_parser.add_argument("id", type=int, help="Palette id to delete")
+        args = del_parser.parse_args(sys.argv[2:])
+
+        if CoverPalette.delete_palette(args.id):
+            print(f"Deleted palette {args.id}")
+        else:
+            print(f"Palette {args.id} not found")
         return
 
     # Support an unquoted "artist - album" form by rewriting sys.argv
@@ -121,14 +136,14 @@ def main() -> None:
     print("Color-blind friendly:", palette.is_colorblind_friendly)
 
     if args.save:
-        palette.save_palette()
-        print("Palette saved")
+        pid = palette.save_palette()
+        print(f"Palette saved as #{pid}")
     else:
         palette.preview_palette(cmap)
         ans = input("Save this palette? [y/N] ").strip().lower()
         if ans in {"y", "yes"}:
-            palette.save_palette()
-            print("Palette saved")
+            pid = palette.save_palette()
+            print(f"Palette saved as #{pid}")
 
 
 if __name__ == "__main__":

@@ -440,17 +440,26 @@ class CoverPalette:
         colors = getattr(cmap, "colors", [])
         return is_colorblind_friendly(colors, deficiency=deficiency, threshold=threshold)
 
-    def save_palette(self, path: Optional[str] = None, name: Optional[str] = None):
-        """Save ``self.hexcodes`` and metadata.
+    def save_palette(self, path: Optional[str] = None):
+        """Save ``self.hexcodes`` and metadata and return the palette id.
 
         When ``path`` is ``None`` the palette is recorded only in
         ``index.json`` under ``PALETTE_DIR``.  If a path is supplied the
         hexcodes are also written to that location as JSON.  All palette
         metadata and hexcodes are stored in ``index.json`` so that palettes can
-        easily be listed and loaded later.
+        easily be listed and loaded later.  Each palette is assigned a
+        numerical ``id`` which can be used for listing, loading and deleting
+        palettes.
 
-        Raises:
-            ValueError: If ``hexcodes`` have not been generated.
+        Returns
+        -------
+        int
+            The ``id`` assigned to the saved palette.
+
+        Raises
+        ------
+        ValueError
+            If ``hexcodes`` have not been generated.
         """
 
         if not self.hexcodes:
@@ -458,10 +467,17 @@ class CoverPalette:
 
         _ensure_palette_dir()
 
-        if not name:
-            safe_artist = self.artist.replace(" ", "_").lower()
-            safe_album = self.album.replace(" ", "_").lower()
-            name = f"{safe_artist}_{safe_album}_{len(self.hexcodes)}"
+        # Load existing index to determine next id
+        if INDEX_FILE.exists():
+            try:
+                with INDEX_FILE.open("r") as f:
+                    data = json.load(f)
+            except json.JSONDecodeError:
+                data = []
+        else:
+            data = []
+
+        next_id = max([entry.get("id", 0) for entry in data], default=0) + 1
 
         json_path = Path(path) if path else None
 
@@ -475,7 +491,7 @@ class CoverPalette:
 
         # Update index metadata
         metadata = {
-            "name": name,
+            "id": next_id,
             "artist": self.artist,
             "album": self.album,
             "n_colors": len(self.hexcodes),
@@ -484,20 +500,11 @@ class CoverPalette:
             "path": str(json_path) if json_path else None,
         }
 
-        if INDEX_FILE.exists():
-            try:
-                with INDEX_FILE.open("r") as f:
-                    data = json.load(f)
-            except json.JSONDecodeError:
-                data = []
-        else:
-            data = []
-
-        # remove any existing entry with same name
-        data = [entry for entry in data if entry.get("name") != metadata["name"]]
         data.append(metadata)
         with INDEX_FILE.open("w") as f:
             json.dump(data, f, indent=2)
+
+        return next_id
 
     def load_palette(self, path: Union[str, Path]):
         """Load hexcodes from ``path`` and set ``self.hexcodes``.
@@ -530,6 +537,8 @@ class CoverPalette:
         with INDEX_FILE.open("r") as f:
             data = json.load(f)
 
+        data.sort(key=lambda d: d.get("id", 0))
+
         for entry in data:
             if entry.get("name") == name:
                 if entry.get("hexcodes"):
@@ -543,6 +552,79 @@ class CoverPalette:
 
         raise FileNotFoundError(f"Saved palette '{name}' not found")
 
+    def load_palette_by_id(self, palette_id: int):
+        """Load a saved palette using its numeric ``id``."""
+
+        _ensure_palette_dir()
+        if not INDEX_FILE.exists():
+            raise FileNotFoundError("No saved palettes available")
+
+        with INDEX_FILE.open("r") as f:
+            data = json.load(f)
+
+        for entry in data:
+            if entry.get("id") == palette_id:
+                if entry.get("hexcodes"):
+                    self.hexcodes = entry["hexcodes"]
+                elif entry.get("path"):
+                    self.load_palette(entry["path"])
+                else:
+                    raise FileNotFoundError(f"Palette data for id {palette_id} missing")
+                self.image_path = entry.get("image_url", self.image_path)
+                self.artist = entry.get("artist", self.artist)
+                self.album = entry.get("album", self.album)
+                return
+
+        raise FileNotFoundError(f"Saved palette id {palette_id} not found")
+
+    @staticmethod
+    def delete_palette(palette_id: int) -> bool:
+        """Remove a palette from ``index.json`` and delete its file if present.
+
+        Parameters
+        ----------
+        palette_id : int
+            Numeric id of the palette to remove.
+
+        Returns
+        -------
+        bool
+            ``True`` if a palette was removed, ``False`` otherwise.
+        """
+
+        _ensure_palette_dir()
+        if not INDEX_FILE.exists():
+            return False
+
+        with INDEX_FILE.open("r") as f:
+            try:
+                data = json.load(f)
+            except json.JSONDecodeError:
+                data = []
+
+        remaining = []
+        removed_entry = None
+        for entry in data:
+            if entry.get("id") == palette_id:
+                removed_entry = entry
+            else:
+                remaining.append(entry)
+
+        if removed_entry is None:
+            return False
+
+        with INDEX_FILE.open("w") as f:
+            json.dump(remaining, f, indent=2)
+
+        palette_path = removed_entry.get("path")
+        if palette_path:
+            try:
+                Path(palette_path).unlink()
+            except OSError:
+                pass
+
+        return True
+
     @staticmethod
     def list_palettes(page: int = 1, per_page: int = 10):
         """Return a paginated list of saved palette metadata."""
@@ -553,6 +635,8 @@ class CoverPalette:
 
         with INDEX_FILE.open("r") as f:
             data = json.load(f)
+
+        data.sort(key=lambda d: d.get("id", 0))
 
         start = max(0, (page - 1) * per_page)
         end = start + per_page
@@ -570,6 +654,7 @@ class CoverPalette:
             data = json.load(f)
 
         matches = [entry for entry in data if entry.get("n_colors") == n_colors]
+        matches.sort(key=lambda d: d.get("id", 0))
 
         start = max(0, (page - 1) * per_page)
         end = start + per_page
@@ -635,8 +720,9 @@ class CoverPalette:
 
                     artist = (entry.get("artist") or "").title()
                     album = (entry.get("album") or "").title()
+                    pid = entry.get("id")
                     text = (
-                        f"{artist} - {album} "
+                        f"#{pid} {artist} - {album} "
                         f"({entry.get('n_colors')} colors)\n"
                         + " ".join(hexcodes)
                     )
