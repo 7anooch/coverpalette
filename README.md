@@ -6,9 +6,12 @@ Clone the repo, navigate inside it and use ``pip install .``
 
 For detailed instructions and command line usage see [USAGE.md](USAGE.md).
 You can enter the artist and album without quotes by placing a dash between
-them, e.g. ``coverpalette artist - album``.  You can also list saved palettes
-with ``coverpalette list``.  Run ``coverpalette list --pdf`` to open a PDF
-showing the stored palettes.
+them, e.g. ``coverpalette artist - album``. Add ``--hue`` to select colors with
+maximal hue separation. ``--light`` and ``--dark`` filter colors by brightness
+while ``--bold`` keeps the most saturated tones. ``--max-colors`` controls how
+many candidates are considered when picking an optimal palette. You can also list saved palettes with
+``coverpalette list``.  Run ``coverpalette list --pdf`` to open a PDF showing
+the stored palettes.
 
 ### API access to album covers
 Before installation, consider setting up some API keys if you so wish.
@@ -105,6 +108,26 @@ Output:
 
 
     ['#0ea1c1', '#456a78', '#0269ae', '#091a2d']
+
+You can convert these hexcodes to hue, saturation and brightness (value) using
+``hexcodes_to_hsv``:
+
+```python
+hsv_colors = coverpalette.hexcodes_to_hsv()
+print(hsv_colors)
+```
+
+If you want a palette whose hues are maximally separated you can call
+``generate_hue_distinct_optimal_cmap`` which works similarly to
+``generate_distinct_optimal_cmap`` but focuses only on hue differences.
+
+```python
+distinct_colors, distinct_cmap = coverpalette.generate_hue_distinct_optimal_cmap(
+    n_distinct_colors=4,
+    light=True,
+    bold=True,
+)
+```
 
 ### Saving and loading palettes
 

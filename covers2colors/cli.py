@@ -73,7 +73,24 @@ def main() -> None:
     parser.add_argument("artist", help="Name of the artist")
     parser.add_argument("album", help="Name of the album")
     parser.add_argument("-n", "--n-colors", type=int, default=4, help="Number of colors")
+    parser.add_argument(
+        "-m",
+        "--max-colors",
+        type=int,
+        default=10,
+        help="Maximum colors to consider when generating the palette",
+    )
     parser.add_argument("--random-state", type=int, default=None, help="Random seed")
+    parser.add_argument(
+        "--hue",
+        action="store_true",
+        help="Maximize hue separation when selecting colors",
+    )
+    parser.add_argument("--light", action="store_true", help="Prefer lighter colors")
+    parser.add_argument("--dark", action="store_true", help="Prefer darker colors")
+    parser.add_argument(
+        "--bold", action="store_true", help="Prefer high saturation colors"
+    )
     parser.add_argument(
         "--save",
         action="store_true",
@@ -82,9 +99,24 @@ def main() -> None:
     args = parser.parse_args()
 
     palette = CoverPalette(args.artist, args.album)
-    _, cmap = palette.generate_distinct_optimal_cmap(
-        n_distinct_colors=args.n_colors, random_state=args.random_state
-    )
+    if args.hue:
+        _, cmap = palette.generate_hue_distinct_optimal_cmap(
+            n_distinct_colors=args.n_colors,
+            max_colors=args.max_colors,
+            random_state=args.random_state,
+            light=args.light,
+            dark=args.dark,
+            bold=args.bold,
+        )
+    else:
+        _, cmap = palette.generate_distinct_optimal_cmap(
+            n_distinct_colors=args.n_colors,
+            max_colors=args.max_colors,
+            random_state=args.random_state,
+            light=args.light,
+            dark=args.dark,
+            bold=args.bold,
+        )
     print("Hexcodes:", " ".join(palette.hexcodes))
 
     if args.save:

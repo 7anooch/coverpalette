@@ -15,6 +15,10 @@ single dash (`-`).
 ```bash
 coverpalette artist - album -n 5       # preview then optionally save
 coverpalette artist - album -n 5 --save  # save directly
+coverpalette artist - album -n 5 --hue   # maximize hue separation
+coverpalette artist - album --hue --light  # bright colors only
+coverpalette artist - album --bold        # saturated colors
+coverpalette artist - album --max-colors 8  # search fewer candidate colors
 ```
 
 This prints the hex codes of the palette. Palettes saved via the command line

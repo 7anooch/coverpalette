@@ -78,6 +78,44 @@ class CoverPalette:
         self.kmeans = None
         self.hexcodes = None
 
+    def hexcodes_to_hsv(self):
+        """Return ``self.hexcodes`` converted to HSV values."""
+
+        if not self.hexcodes:
+            raise ValueError("No hexcodes have been generated")
+
+        hsv_colors = [
+            colorsys.rgb_to_hsv(*mpl.colors.to_rgb(hexcode))
+            for hexcode in self.hexcodes
+        ]
+        return hsv_colors
+
+    @staticmethod
+    def _filter_colors(
+        colors: np.ndarray,
+        light: bool = False,
+        dark: bool = False,
+        bold: bool = False,
+        light_thresh: float = 0.6,
+        dark_thresh: float = 0.4,
+        bold_thresh: float = 0.6,
+    ) -> np.ndarray:
+        """Filter ``colors`` based on brightness and saturation."""
+
+        if not (light or dark or bold):
+            return colors
+
+        hsv = np.array([colorsys.rgb_to_hsv(*c) for c in colors])
+        mask = np.ones(len(colors), dtype=bool)
+        if light and not dark:
+            mask &= hsv[:, 2] >= light_thresh
+        if dark and not light:
+            mask &= hsv[:, 2] <= dark_thresh
+        if bold:
+            mask &= hsv[:, 1] >= bold_thresh
+        filtered = colors[mask]
+        return filtered if len(filtered) > 0 else colors
+
     def generate_cmap(self, n_colors=4, palette_name = None, random_state=None):
         """Generates a matplotlib ListedColormap from an image.
 
@@ -156,29 +194,34 @@ class CoverPalette:
             self.hexcodes = None
         return cmaps, best_n_colors, ssd
     
-    def get_distinct_colors(self, cmap, n_colors):
+    def get_distinct_colors(
+        self,
+        cmap,
+        n_colors,
+        light: bool = False,
+        dark: bool = False,
+        bold: bool = False,
+    ):
         """Get the most distinct colors from a colormap.
 
         Args:
             cmap (matplotlib.colors.ListedColormap): The colormap.
             n_colors (int): The number of distinct colors to get.
+            light, dark, bold (bool): Apply brightness/saturation filters.
 
         Returns:
             list: A list of the most distinct RGB color tuples.
         """
-        # Convert the colormap colors to a 2D array
         colors = np.array(cmap.colors)
+        colors = self._filter_colors(colors, light=light, dark=dark, bold=bold)
 
-        # Use KMeans to find the most distinct colors
+        if len(colors) < n_colors:
+            colors = np.array(cmap.colors)
+
         kmeans = KMeans(n_clusters=n_colors, random_state=0, n_init=1).fit(colors)
-
-        # Get the most distinct colors
-        distinct_colors = kmeans.cluster_centers_
-        distinct_colors = np.array(distinct_colors)
-
-        # Create a colormap from the distinct colors
+        distinct_colors = np.array(kmeans.cluster_centers_)
         distinct_cmap = ListedColormap(distinct_colors)
-        
+
         return distinct_colors, distinct_cmap
     
     def generate_distinct_optimal_cmap(
@@ -187,6 +230,10 @@ class CoverPalette:
         n_distinct_colors: int = 4,
         palette_name: Optional[str] = None,
         random_state: Optional[int] = None,
+        *,
+        light: bool = False,
+        dark: bool = False,
+        bold: bool = False,
     ):
         """Generates an optimal colormap and then picks the most distinct colors from it.
 
@@ -195,13 +242,19 @@ class CoverPalette:
             n_distinct_colors (int, optional): The number of distinct colors to pick from the optimal colormap. Defaults to 4.
             palette_name (_type_, optional): The name of the palette to use. Defaults to None.
             random_state (_type_, optional): The seed for the random number generator. Defaults to None.
+            light, dark, bold (bool, optional): Filter colors by brightness or
+                saturation before measuring distinctness. ``light`` keeps bright
+                colors, ``dark`` keeps dim colors and ``bold`` prefers saturated
+                colors. Defaults to False.
 
         Returns:
             list: A list of the most distinct RGB color tuples.
             matplotlib.colors.ListedColormap: A colormap of the most distinct colors.
         """
         # Generate the optimal colormap
-        cmaps, best_n_colors, ssd = self.generate_optimal_cmap(max_colors, palette_name, random_state)
+        cmaps, best_n_colors, ssd = self.generate_optimal_cmap(
+            max_colors, palette_name, random_state
+        )
 
         max_distinctness = 0
         best_distinct_colors = None
@@ -211,7 +264,9 @@ class CoverPalette:
             if len(cmap.colors) < n_distinct_colors:
                 continue
             
-            distinct_colors, distinct_cmap = self.get_distinct_colors(cmap, n_distinct_colors)
+            distinct_colors, distinct_cmap = self.get_distinct_colors(
+                cmap, n_distinct_colors, light=light, dark=dark, bold=bold
+            )
 
             # Calculate the total pairwise distance between the colors
             distinctness = np.sum(squareform(pdist(distinct_colors)))
@@ -226,6 +281,67 @@ class CoverPalette:
         self.hexcodes = [mpl.colors.rgb2hex(c) for c in best_distinct_colors]
 
         return best_distinct_colors, best_distinct_cmap
+
+    @staticmethod
+    def _hue_distinctness(colors: np.ndarray) -> float:
+        """Return a metric representing the total hue separation."""
+
+        hues = np.array([colorsys.rgb_to_hsv(*c)[0] for c in colors])
+        diff = np.abs(hues[:, None] - hues[None, :])
+        diff = np.minimum(diff, 1 - diff)
+        return diff.sum()
+
+    def get_hue_distinct_colors(self, cmap, n_colors):
+        """Pick ``n_colors`` maximizing hue separation from ``cmap``."""
+
+        colors = np.array(cmap.colors)
+        hues = np.array([[colorsys.rgb_to_hsv(*c)[0]] for c in colors])
+        kmeans = KMeans(n_clusters=n_colors, random_state=0, n_init=1).fit(hues)
+        centers = kmeans.cluster_centers_.ravel()
+        indices = [np.argmin(np.abs(hues.ravel() - c)) for c in centers]
+        distinct_colors = colors[indices]
+        distinct_cmap = ListedColormap(distinct_colors)
+        return distinct_colors, distinct_cmap
+
+    def generate_hue_distinct_optimal_cmap(
+        self,
+        max_colors: int = 10,
+        n_distinct_colors: int = 4,
+        palette_name: Optional[str] = None,
+        random_state: Optional[int] = None,
+        *,
+        light: bool = False,
+        dark: bool = False,
+        bold: bool = False,
+    ):
+        """Generate a colormap maximizing hue distinction."""
+
+        cmaps, _, _ = self.generate_optimal_cmap(max_colors, palette_name, random_state)
+
+        best_distinct = 0
+        best_colors = None
+        best_cmap = None
+        for cmap in cmaps.values():
+            colors = np.array(cmap.colors)
+            if len(colors) < n_distinct_colors:
+                continue
+            filtered = self._filter_colors(colors, light=light, dark=dark, bold=bold)
+            if len(filtered) < n_distinct_colors:
+                filtered = colors
+            tmp_cmap = ListedColormap(filtered)
+            distinct, dcmap = self.get_hue_distinct_colors(tmp_cmap, n_distinct_colors)
+            d = self._hue_distinctness(distinct)
+            if d > best_distinct:
+                best_distinct = d
+                best_colors = distinct
+                best_cmap = dcmap
+
+        if best_colors is None:
+            raise ValueError("Unable to select distinct hues with the given parameters")
+
+        best_colors = np.array(best_colors)
+        self.hexcodes = [mpl.colors.rgb2hex(c) for c in best_colors]
+        return best_colors, best_cmap
 
     def remove_transparent(self):
         """Removes the transparent pixels from an image array.
