@@ -323,6 +323,8 @@ class CoverPalette:
         best_cmap = None
         for cmap in cmaps.values():
             colors = np.array(cmap.colors)
+            if len(colors) < n_distinct_colors:
+                continue
             filtered = self._filter_colors(colors, light=light, dark=dark, bold=bold)
             if len(filtered) < n_distinct_colors:
                 filtered = colors
