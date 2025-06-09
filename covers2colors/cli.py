@@ -48,6 +48,25 @@ def main() -> None:
             print(f"{name} ({n} colors) - {path}")
         return
 
+    # Support an unquoted "artist - album" form by rewriting sys.argv
+    args = sys.argv[1:]
+    if "-" in args:
+        dash = args.index("-")
+        artist_tokens = args[:dash]
+        rest = args[dash + 1 :]
+        album_tokens = []
+        options = []
+        for i, token in enumerate(rest):
+            if token.startswith("-"):
+                options = rest[i:]
+                break
+            album_tokens.append(token)
+        if artist_tokens and album_tokens:
+            sys.argv = (
+                [sys.argv[0], " ".join(artist_tokens), " ".join(album_tokens)]
+                + options
+            )
+
     parser = argparse.ArgumentParser(
         description="Create color palettes from album covers"
     )

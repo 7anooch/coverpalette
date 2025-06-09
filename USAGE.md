@@ -9,9 +9,12 @@ obtain a palette. By default a preview window will open so you can inspect
 the colors before deciding whether to save them. Use `--save` to bypass the
 preview and store the palette immediately.
 
+The artist and album can be entered without quotes by separating them with a
+single dash (`-`).
+
 ```bash
-coverpalette "artist" "album" -n 5       # preview then optionally save
-coverpalette "artist" "album" -n 5 --save  # save directly
+coverpalette artist - album -n 5       # preview then optionally save
+coverpalette artist - album -n 5 --save  # save directly
 ```
 
 This prints the hex codes of the palette. Palettes saved via the command line

@@ -5,8 +5,10 @@
 Clone the repo, navigate inside it and use ``pip install .``
 
 For detailed instructions and command line usage see [USAGE.md](USAGE.md).
-You can also list saved palettes with ``coverpalette list``.
-Run ``coverpalette list --pdf`` to open a PDF showing the stored palettes.
+You can enter the artist and album without quotes by placing a dash between
+them, e.g. ``coverpalette artist - album``.  You can also list saved palettes
+with ``coverpalette list``.  Run ``coverpalette list --pdf`` to open a PDF
+showing the stored palettes.
 
 ### API access to album covers
 Before installation, consider setting up some API keys if you so wish.
