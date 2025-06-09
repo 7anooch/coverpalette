@@ -96,6 +96,7 @@ The different methods of obtaining a palette will often return different palette
 
 When running the ``generate_cmap`` or the ``generate_optimal_cmap`` methods the CoverPalette object will automatically
 capture the resulting hexcodes from the colormap and store them as an attribute.
+The palette's color-blind friendliness is stored as ``is_colorblind_friendly``.
 
 
     from covers2colors import CoverPalette
@@ -103,6 +104,7 @@ capture the resulting hexcodes from the colormap and store them as an attribute.
     coverpalette = CoverPalette('Nirvana', 'Nevermind')
     coverpalette.generate_cmap(n_colors=4, random_state=42)
     print(coverpalette.hexcodes)
+    print(coverpalette.is_colorblind_friendly)
 
 Output:
 
@@ -157,5 +159,20 @@ for p in CoverPalette.find_palettes_by_color_count(5):
 new_colors = CoverPalette('Nirvana', 'Nevermind')
 new_colors.load_palette_by_name('nirvana_nevermind_4')
 print(new_colors.hexcodes)
+```
+
+### Checking color-blind friendliness
+
+Every palette generation method automatically checks color-blind
+friendliness. You can also call
+:func:`covers2colors.colorblind.is_colorblind_friendly` on a list of colors or
+use :meth:`CoverPalette.colorblind_friendly` with a colormap:
+
+```python
+from covers2colors import CoverPalette
+
+palette = CoverPalette('Iron Maiden', 'Powerslave')
+cmap = palette.generate_cmap(n_colors=5, random_state=42)
+print(palette.is_colorblind_friendly)
 ```
 

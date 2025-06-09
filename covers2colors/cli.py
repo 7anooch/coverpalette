@@ -118,6 +118,7 @@ def main() -> None:
             bold=args.bold,
         )
     print("Hexcodes:", " ".join(palette.hexcodes))
+    print("Color-blind friendly:", palette.is_colorblind_friendly)
 
     if args.save:
         palette.save_palette()
