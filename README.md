@@ -7,7 +7,8 @@ Clone the repo, navigate inside it and use ``pip install .``
 For detailed instructions and command line usage see [USAGE.md](USAGE.md).
 You can enter the artist and album without quotes by placing a dash between
 them, e.g. ``coverpalette artist - album``. Add ``--hue`` to select colors with
-maximal hue separation.  You can also list saved palettes with
+maximal hue separation. ``--light`` and ``--dark`` filter colors by brightness
+while ``--bold`` keeps the most saturated tones. You can also list saved palettes with
 ``coverpalette list``.  Run ``coverpalette list --pdf`` to open a PDF showing
 the stored palettes.
 
@@ -121,7 +122,9 @@ If you want a palette whose hues are maximally separated you can call
 
 ```python
 distinct_colors, distinct_cmap = coverpalette.generate_hue_distinct_optimal_cmap(
-    n_distinct_colors=4
+    n_distinct_colors=4,
+    light=True,
+    bold=True,
 )
 ```
 

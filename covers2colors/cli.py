@@ -79,6 +79,11 @@ def main() -> None:
         action="store_true",
         help="Maximize hue separation when selecting colors",
     )
+    parser.add_argument("--light", action="store_true", help="Prefer lighter colors")
+    parser.add_argument("--dark", action="store_true", help="Prefer darker colors")
+    parser.add_argument(
+        "--bold", action="store_true", help="Prefer high saturation colors"
+    )
     parser.add_argument(
         "--save",
         action="store_true",
@@ -89,11 +94,19 @@ def main() -> None:
     palette = CoverPalette(args.artist, args.album)
     if args.hue:
         _, cmap = palette.generate_hue_distinct_optimal_cmap(
-            n_distinct_colors=args.n_colors, random_state=args.random_state
+            n_distinct_colors=args.n_colors,
+            random_state=args.random_state,
+            light=args.light,
+            dark=args.dark,
+            bold=args.bold,
         )
     else:
         _, cmap = palette.generate_distinct_optimal_cmap(
-            n_distinct_colors=args.n_colors, random_state=args.random_state
+            n_distinct_colors=args.n_colors,
+            random_state=args.random_state,
+            light=args.light,
+            dark=args.dark,
+            bold=args.bold,
         )
     print("Hexcodes:", " ".join(palette.hexcodes))
 
