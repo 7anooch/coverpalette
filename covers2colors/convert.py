@@ -26,6 +26,39 @@ def _ensure_palette_dir() -> None:
     """Create the palette directory if it does not exist."""
     PALETTE_DIR.mkdir(parents=True, exist_ok=True)
 
+
+def _load_index(assign_ids: bool = False) -> list:
+    """Return the contents of ``index.json`` upgrading entries if needed.
+
+    When ``assign_ids`` is ``True`` any palette entries missing an ``id``
+    field are assigned a numeric identifier and the file is updated on disk.
+    """
+
+    _ensure_palette_dir()
+
+    if INDEX_FILE.exists():
+        try:
+            with INDEX_FILE.open("r") as f:
+                data = json.load(f)
+        except json.JSONDecodeError:
+            data = []
+    else:
+        data = []
+
+    if assign_ids:
+        next_id = max([entry.get("id", 0) for entry in data], default=0)
+        updated = False
+        for entry in data:
+            if "id" not in entry:
+                next_id += 1
+                entry["id"] = next_id
+                updated = True
+        if updated:
+            with INDEX_FILE.open("w") as f:
+                json.dump(data, f, indent=2)
+
+    return data
+
 class CoverPalette:
     """
     A class to convert album artwork to a numpy array of RGB values.
@@ -465,17 +498,8 @@ class CoverPalette:
         if not self.hexcodes:
             raise ValueError("No palette has been generated to save")
 
-        _ensure_palette_dir()
-
-        # Load existing index to determine next id
-        if INDEX_FILE.exists():
-            try:
-                with INDEX_FILE.open("r") as f:
-                    data = json.load(f)
-            except json.JSONDecodeError:
-                data = []
-        else:
-            data = []
+        # Load existing index to determine next id and upgrade if needed
+        data = _load_index(assign_ids=True)
 
         next_id = max([entry.get("id", 0) for entry in data], default=0) + 1
 
@@ -530,12 +554,9 @@ class CoverPalette:
     def load_palette_by_name(self, name: str):
         """Load a saved palette using its registered ``name``."""
 
-        _ensure_palette_dir()
-        if not INDEX_FILE.exists():
+        data = _load_index(assign_ids=True)
+        if not data:
             raise FileNotFoundError("No saved palettes available")
-
-        with INDEX_FILE.open("r") as f:
-            data = json.load(f)
 
         data.sort(key=lambda d: d.get("id", 0))
 
@@ -555,12 +576,9 @@ class CoverPalette:
     def load_palette_by_id(self, palette_id: int):
         """Load a saved palette using its numeric ``id``."""
 
-        _ensure_palette_dir()
-        if not INDEX_FILE.exists():
+        data = _load_index(assign_ids=True)
+        if not data:
             raise FileNotFoundError("No saved palettes available")
-
-        with INDEX_FILE.open("r") as f:
-            data = json.load(f)
 
         for entry in data:
             if entry.get("id") == palette_id:
@@ -592,15 +610,9 @@ class CoverPalette:
             ``True`` if a palette was removed, ``False`` otherwise.
         """
 
-        _ensure_palette_dir()
-        if not INDEX_FILE.exists():
+        data = _load_index(assign_ids=True)
+        if not data:
             return False
-
-        with INDEX_FILE.open("r") as f:
-            try:
-                data = json.load(f)
-            except json.JSONDecodeError:
-                data = []
 
         remaining = []
         removed_entry = None
@@ -629,12 +641,9 @@ class CoverPalette:
     def list_palettes(page: int = 1, per_page: int = 10):
         """Return a paginated list of saved palette metadata."""
 
-        _ensure_palette_dir()
-        if not INDEX_FILE.exists():
+        data = _load_index(assign_ids=True)
+        if not data:
             return []
-
-        with INDEX_FILE.open("r") as f:
-            data = json.load(f)
 
         data.sort(key=lambda d: d.get("id", 0))
 
@@ -646,12 +655,9 @@ class CoverPalette:
     def find_palettes_by_color_count(n_colors: int, page: int = 1, per_page: int = 10):
         """Return saved palettes matching ``n_colors``."""
 
-        _ensure_palette_dir()
-        if not INDEX_FILE.exists():
+        data = _load_index(assign_ids=True)
+        if not data:
             return []
-
-        with INDEX_FILE.open("r") as f:
-            data = json.load(f)
 
         matches = [entry for entry in data if entry.get("n_colors") == n_colors]
         matches.sort(key=lambda d: d.get("id", 0))
@@ -675,8 +681,8 @@ class CoverPalette:
         ``force`` is ``True``. Returns ``None`` when no palettes are saved.
         """
 
-        _ensure_palette_dir()
-        if not INDEX_FILE.exists():
+        data = _load_index(assign_ids=True)
+        if not data:
             return None
 
         pdf_path = CoverPalette.pdf_file()
@@ -684,12 +690,6 @@ class CoverPalette:
         if not force and pdf_path.exists():
             if pdf_path.stat().st_mtime >= INDEX_FILE.stat().st_mtime:
                 return pdf_path
-
-        with INDEX_FILE.open("r") as f:
-            data = json.load(f)
-
-        if not data:
-            return None
 
         from matplotlib.backends.backend_pdf import PdfPages
 

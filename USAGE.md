@@ -38,6 +38,8 @@ Each entry is shown with a numeric ``id`` which can be used to load or delete
 palettes.  Add ``--pdf`` to generate a PDF that displays every palette with a
 horizontal color bar. The PDF is stored under
 ``~/.covers2colors/palettes/palettes.pdf``.
+Palettes created before numeric ids were introduced will automatically be
+numbered the next time they are listed or loaded.
 
 To remove a saved palette use:
 

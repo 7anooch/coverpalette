@@ -13,7 +13,8 @@ many candidates are considered when picking an optimal palette. You can also
 list saved palettes with ``coverpalette list``.  Each palette is assigned a
 numeric ``id`` that is shown when listing or in the PDF generated via
 ``coverpalette list --pdf``.  Palettes can be removed with
-``coverpalette delete ID``.
+``coverpalette delete ID``. Palettes created before numeric ids were introduced
+will automatically be numbered when accessed.
 
 ### API access to album covers
 Before installation, consider setting up some API keys if you so wish.
