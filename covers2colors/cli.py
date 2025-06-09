@@ -75,6 +75,11 @@ def main() -> None:
     parser.add_argument("-n", "--n-colors", type=int, default=4, help="Number of colors")
     parser.add_argument("--random-state", type=int, default=None, help="Random seed")
     parser.add_argument(
+        "--hue",
+        action="store_true",
+        help="Maximize hue separation when selecting colors",
+    )
+    parser.add_argument(
         "--save",
         action="store_true",
         help="Save without previewing the palette",
@@ -82,9 +87,14 @@ def main() -> None:
     args = parser.parse_args()
 
     palette = CoverPalette(args.artist, args.album)
-    _, cmap = palette.generate_distinct_optimal_cmap(
-        n_distinct_colors=args.n_colors, random_state=args.random_state
-    )
+    if args.hue:
+        _, cmap = palette.generate_hue_distinct_optimal_cmap(
+            n_distinct_colors=args.n_colors, random_state=args.random_state
+        )
+    else:
+        _, cmap = palette.generate_distinct_optimal_cmap(
+            n_distinct_colors=args.n_colors, random_state=args.random_state
+        )
     print("Hexcodes:", " ".join(palette.hexcodes))
 
     if args.save:

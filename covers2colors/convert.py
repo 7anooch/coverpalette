@@ -78,6 +78,18 @@ class CoverPalette:
         self.kmeans = None
         self.hexcodes = None
 
+    def hexcodes_to_hsv(self):
+        """Return ``self.hexcodes`` converted to HSV values."""
+
+        if not self.hexcodes:
+            raise ValueError("No hexcodes have been generated")
+
+        hsv_colors = [
+            colorsys.rgb_to_hsv(*mpl.colors.to_rgb(hexcode))
+            for hexcode in self.hexcodes
+        ]
+        return hsv_colors
+
     def generate_cmap(self, n_colors=4, palette_name = None, random_state=None):
         """Generates a matplotlib ListedColormap from an image.
 
@@ -226,6 +238,55 @@ class CoverPalette:
         self.hexcodes = [mpl.colors.rgb2hex(c) for c in best_distinct_colors]
 
         return best_distinct_colors, best_distinct_cmap
+
+    @staticmethod
+    def _hue_distinctness(colors: np.ndarray) -> float:
+        """Return a metric representing the total hue separation."""
+
+        hues = np.array([colorsys.rgb_to_hsv(*c)[0] for c in colors])
+        diff = np.abs(hues[:, None] - hues[None, :])
+        diff = np.minimum(diff, 1 - diff)
+        return diff.sum()
+
+    def get_hue_distinct_colors(self, cmap, n_colors):
+        """Pick ``n_colors`` maximizing hue separation from ``cmap``."""
+
+        colors = np.array(cmap.colors)
+        hues = np.array([[colorsys.rgb_to_hsv(*c)[0]] for c in colors])
+        kmeans = KMeans(n_clusters=n_colors, random_state=0, n_init=1).fit(hues)
+        centers = kmeans.cluster_centers_.ravel()
+        indices = [np.argmin(np.abs(hues.ravel() - c)) for c in centers]
+        distinct_colors = colors[indices]
+        distinct_cmap = ListedColormap(distinct_colors)
+        return distinct_colors, distinct_cmap
+
+    def generate_hue_distinct_optimal_cmap(
+        self,
+        max_colors: int = 10,
+        n_distinct_colors: int = 4,
+        palette_name: Optional[str] = None,
+        random_state: Optional[int] = None,
+    ):
+        """Generate a colormap maximizing hue distinction."""
+
+        cmaps, _, _ = self.generate_optimal_cmap(max_colors, palette_name, random_state)
+
+        best_distinct = 0
+        best_colors = None
+        best_cmap = None
+        for cmap in cmaps.values():
+            if len(cmap.colors) < n_distinct_colors:
+                continue
+            colors, dcmap = self.get_hue_distinct_colors(cmap, n_distinct_colors)
+            d = self._hue_distinctness(colors)
+            if d > best_distinct:
+                best_distinct = d
+                best_colors = colors
+                best_cmap = dcmap
+
+        best_colors = np.array(best_colors)
+        self.hexcodes = [mpl.colors.rgb2hex(c) for c in best_colors]
+        return best_colors, best_cmap
 
     def remove_transparent(self):
         """Removes the transparent pixels from an image array.
