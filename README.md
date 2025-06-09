@@ -8,7 +8,8 @@ For detailed instructions and command line usage see [USAGE.md](USAGE.md).
 You can enter the artist and album without quotes by placing a dash between
 them, e.g. ``coverpalette artist - album``. Add ``--hue`` to select colors with
 maximal hue separation. ``--light`` and ``--dark`` filter colors by brightness
-while ``--bold`` keeps the most saturated tones. You can also list saved palettes with
+while ``--bold`` keeps the most saturated tones. ``--max-colors`` controls how
+many candidates are considered when picking an optimal palette. You can also list saved palettes with
 ``coverpalette list``.  Run ``coverpalette list --pdf`` to open a PDF showing
 the stored palettes.
 

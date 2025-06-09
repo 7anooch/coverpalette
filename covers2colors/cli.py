@@ -73,6 +73,13 @@ def main() -> None:
     parser.add_argument("artist", help="Name of the artist")
     parser.add_argument("album", help="Name of the album")
     parser.add_argument("-n", "--n-colors", type=int, default=4, help="Number of colors")
+    parser.add_argument(
+        "-m",
+        "--max-colors",
+        type=int,
+        default=10,
+        help="Maximum colors to consider when generating the palette",
+    )
     parser.add_argument("--random-state", type=int, default=None, help="Random seed")
     parser.add_argument(
         "--hue",
@@ -95,6 +102,7 @@ def main() -> None:
     if args.hue:
         _, cmap = palette.generate_hue_distinct_optimal_cmap(
             n_distinct_colors=args.n_colors,
+            max_colors=args.max_colors,
             random_state=args.random_state,
             light=args.light,
             dark=args.dark,
@@ -103,6 +111,7 @@ def main() -> None:
     else:
         _, cmap = palette.generate_distinct_optimal_cmap(
             n_distinct_colors=args.n_colors,
+            max_colors=args.max_colors,
             random_state=args.random_state,
             light=args.light,
             dark=args.dark,
