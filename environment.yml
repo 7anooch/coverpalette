@@ -1,0 +1,16 @@
+name: coverpaletta
+channels:
+  - conda-forge
+dependencies:
+  - python>=3.6
+  - matplotlib
+  - numpy
+  - kneed
+  - pillow
+  - scikit-learn
+  - scipy
+  - fuzzywuzzy
+  - discogs-client
+  - musicbrainzngs
+  - pylast
+  - requests
