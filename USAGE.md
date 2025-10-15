@@ -53,7 +53,7 @@ You can also use the high level function `get_cmap` to create a colormap in one
 call:
 
 ```python
-from covers2colors import get_cmap
+from coverpalette import get_cmap
 
 cmap = get_cmap("Nirvana", "Nevermind", n_colors=4)
 print(cmap.colors)
@@ -66,5 +66,5 @@ workflows.
 
 Every palette generation method automatically evaluates color-blind
 friendliness and stores the result on ``CoverPalette.is_colorblind_friendly``.
-You can also use the :func:`covers2colors.colorblind.is_colorblind_friendly`
+You can also use the :func:`coverpalette.colorblind.is_colorblind_friendly`
 function or ``CoverPalette.colorblind_friendly`` for manual checks.
