@@ -23,7 +23,7 @@ coverpalette artist - album --max-colors 8  # search fewer candidate colors
 
 This prints the hex codes of the palette and reports whether the colors are
 color-blind friendly. Palettes saved via the command line are recorded in
-``~/.covers2colors/palettes/index.json`` along with metadata.
+``~/.coverpalette/palettes/index.json`` along with metadata.
 The preview window displays the album artwork, a sample plot using the colors
 and a color bar. If you run the command without ``--save`` you'll be asked
 whether to store the palette so you don't need to rerun the command.
@@ -37,7 +37,7 @@ coverpalette list
 Each entry is shown with a numeric ``id`` which can be used to load or delete
 palettes.  Add ``--pdf`` to generate a PDF that displays every palette with a
 horizontal color bar. The PDF is stored under
-``~/.covers2colors/palettes/palettes.pdf``.
+``~/.coverpalette/palettes/palettes.pdf``.
 Palettes created before numeric ids were introduced will automatically be
 numbered the next time they are listed or loaded.
 

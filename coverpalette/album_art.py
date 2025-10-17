@@ -18,7 +18,7 @@ def load_api_keys():
     if api_key is not None or discogs_token is not None:
         return api_key, discogs_token
 
-    keys_path = pkg_resources.resource_filename("covers2colors", "keys.json")
+    keys_path = pkg_resources.resource_filename("coverpalette", "keys.json")
     if os.path.exists(keys_path):
         with open(keys_path, "r") as f:
             config = json.load(f)
@@ -30,7 +30,7 @@ def load_api_keys():
 
     return api_key, discogs_token
 
-USER_AGENT = "covers2colors"
+USER_AGENT = "coverpalette"
 USER_AGENT_VERSION = "0.1"
 USER_AGENT_URL = "http://idonthaveawebsite.com"
 COVER_ART_URL_TEMPLATE = "https://coverartarchive.org/release/{}/front-500"
@@ -111,7 +111,7 @@ def get_mb_cover_art_url(artist_name, album_name):
 
 def get_discogs_cover_art_url(artist_name, album_name, user_token):
     """ Fetches the album cover art URL from the Discogs API for a given artist and album."""
-    d = discogs_client.Client("covers2colors/0.1", user_token=user_token)
+    d = discogs_client.Client("coverpalette/0.1", user_token=user_token)
     try:
         discogs_search = d.search(artist=artist_name, release_title=album_name, type="release")
         results = discogs_search.page(1)

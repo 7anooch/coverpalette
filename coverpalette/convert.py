@@ -19,7 +19,7 @@ from .colorblind import is_colorblind_friendly
 from scipy.spatial.distance import pdist, squareform
 
 # Directory where palettes are stored
-PALETTE_DIR = Path.home() / ".covers2colors" / "palettes"
+PALETTE_DIR = Path.home() / ".coverpalette" / "palettes"
 INDEX_FILE = PALETTE_DIR / "index.json"
 
 def _ensure_palette_dir() -> None:
